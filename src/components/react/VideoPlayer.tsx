@@ -32,6 +32,8 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
   const [showControls, setShowControls] = useState(false);
   const [started, setStarted] = useState(false);
   const [seekValue, setSeekValue] = useState(0);
+  const [containerHovered, setContainerHovered] = useState(false);
+  const [playBtnHovered, setPlayBtnHovered] = useState(false);
   const dragging = useRef(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -201,8 +203,8 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
         aria-label={`Video player: ${title}`}
         onKeyDown={onKeyDown}
         onMouseMove={bringUpControls}
-        onMouseEnter={bringUpControls}
-        onMouseLeave={() => { if (playing && !isMobile) setShowControls(false); }}
+        onMouseEnter={() => { setContainerHovered(true); bringUpControls(); }}
+        onMouseLeave={() => { setContainerHovered(false); if (playing && !isMobile) setShowControls(false); }}
         onClick={onVideoTap}
         style={{
           position: 'relative',
@@ -268,33 +270,44 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
           </div>
         )}
 
-        {/* Big play button (shown when ready and not started, or paused) */}
-        {ready && !error && (!started || !playing) && (
+        {/* Premium play button overlay — hidden while playing */}
+        {ready && !error && (
           <div
             onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+            onMouseEnter={() => setPlayBtnHovered(true)}
+            onMouseLeave={() => setPlayBtnHovered(false)}
             style={{
               position: 'absolute', inset: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              pointerEvents: 'auto',
+              pointerEvents: playing ? 'none' : 'auto',
+              opacity: playing ? 0 : 1,
+              transition: reduceMotion ? 'none' : 'opacity 200ms ease',
             }}
           >
             <div style={{
-              width: 64, height: 64, borderRadius: '50%',
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.2)',
+              width: 80, height: 80, borderRadius: '50%',
+              background: playBtnHovered
+                ? 'rgba(255,92,0,0.75)'
+                : 'rgba(10,10,10,0.55)',
+              backdropFilter: 'blur(12px)',
+              border: playBtnHovered
+                ? '1.5px solid rgba(255,92,0,0.8)'
+                : '1.5px solid rgba(255,255,255,0.25)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: reduceMotion ? 'none' : 'background 0.2s, transform 0.2s',
-            }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.2)';
-                (e.currentTarget as HTMLElement).style.transform = 'scale(1.05)';
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)';
-                (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
-              }}
-            >
-              <Play size={24} color="#fff" style={{ marginLeft: 2 }} />
+              transform: playBtnHovered
+                ? 'scale(1.08)'
+                : containerHovered ? 'scale(1.04)' : 'scale(1)',
+              transition: reduceMotion ? 'none'
+                : 'background 250ms cubic-bezier(0.4,0,0.2,1), border-color 250ms cubic-bezier(0.4,0,0.2,1), transform 250ms cubic-bezier(0.4,0,0.2,1)',
+            }}>
+              <svg
+                width="28" height="32" viewBox="0 0 28 32" fill="none"
+                style={{ marginLeft: 3 }}
+                aria-hidden="true"
+              >
+                <path d="M0 0L28 16L0 32V0Z" fill="#FFFFFF" />
+              </svg>
             </div>
           </div>
         )}

@@ -8,7 +8,7 @@ import ScrollReveal from '../../components/react/ScrollReveal';
 import PhaseCarouselGroup from '../../components/react/PhaseCarouselGroup';
 import VideoPlayer from '../../components/react/VideoPlayer';
 import { formatDate } from '../../lib/utils';
-import { ExternalLink, Play, Github, Instagram, FileText } from 'lucide-react';
+import { ExternalLink, Play, Github, Instagram, Newspaper } from 'lucide-react';
 
 type Project = CollectionEntry<'projects'>;
 
@@ -30,7 +30,7 @@ const nextProject = sorted[(currentIndex + 1) % sorted.length] as Project;
 const linkIconMap: Record<string, typeof ExternalLink> = {
   demo: Play,
   github: Github,
-  article: FileText,
+  article: Newspaper,
   instagram: Instagram,
   external: ExternalLink,
 };
