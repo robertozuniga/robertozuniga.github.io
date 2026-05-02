@@ -38,31 +38,38 @@ interface BoundBox {
   maxLng: number
 }
 
+// NOTE: lng values here use the atan2(z, x) coordinate system where
+// new_lng = -lng_geographic. All longitude ranges are negated vs geographic.
 const CONTINENT_BOUNDS: BoundBox[] = [
-  // North America
-  { minLat: 25, maxLat: 70, minLng: -168, maxLng: -52 },
-  { minLat: 8, maxLat: 25, minLng: -118, maxLng: -77 },
-  // South America
-  { minLat: -56, maxLat: 12, minLng: -82, maxLng: -34 },
-  // Europe
-  { minLat: 36, maxLat: 71, minLng: -10, maxLng: 40 },
-  { minLat: 50, maxLat: 60, minLng: -10, maxLng: 2 },
-  // Africa
-  { minLat: -35, maxLat: 37, minLng: -18, maxLng: 51 },
-  // Asia (broad + India + SE Asia)
-  { minLat: 5, maxLat: 75, minLng: 40, maxLng: 180 },
-  { minLat: 8, maxLat: 30, minLng: 68, maxLng: 97 },
-  { minLat: -10, maxLat: 25, minLng: 95, maxLng: 141 },
-  // Australia
-  { minLat: -44, maxLat: -10, minLng: 113, maxLng: 154 },
-  // Greenland
-  { minLat: 60, maxLat: 83, minLng: -73, maxLng: -12 },
+  // North America (geo -168→-52 becomes 52→168; geo -118→-77 becomes 77→118)
+  { minLat: 25, maxLat: 70, minLng: 52, maxLng: 168 },
+  { minLat: 8, maxLat: 25, minLng: 77, maxLng: 118 },
+  // South America (geo -82→-34 becomes 34→82)
+  { minLat: -56, maxLat: 12, minLng: 34, maxLng: 82 },
+  // Europe (geo -10→40 becomes -40→10; geo -10→2 becomes -2→10)
+  { minLat: 36, maxLat: 71, minLng: -40, maxLng: 10 },
+  { minLat: 50, maxLat: 60, minLng: -2, maxLng: 10 },
+  // Africa (geo -18→51 becomes -51→18)
+  { minLat: -35, maxLat: 37, minLng: -51, maxLng: 18 },
+  // Asia broad (geo 40→180 becomes -180→-40)
+  { minLat: 5, maxLat: 75, minLng: -180, maxLng: -40 },
+  // India (geo 68→97 becomes -97→-68)
+  { minLat: 8, maxLat: 30, minLng: -97, maxLng: -68 },
+  // SE Asia (geo 95→141 becomes -141→-95)
+  { minLat: -10, maxLat: 25, minLng: -141, maxLng: -95 },
+  // Australia (geo 113→154 becomes -154→-113)
+  { minLat: -44, maxLat: -10, minLng: -154, maxLng: -113 },
+  // Greenland (geo -73→-12 becomes 12→73)
+  { minLat: 60, maxLat: 83, minLng: 12, maxLng: 73 },
 ]
 
 const OCEAN_CARVES: BoundBox[] = [
-  { minLat: 51, maxLat: 63, minLng: -95, maxLng: -78 }, // Hudson Bay
-  { minLat: 41, maxLat: 47, minLng: 27, maxLng: 42 },  // Black Sea
-  { minLat: 12, maxLat: 30, minLng: 32, maxLng: 56 },  // Red Sea + Persian Gulf
+  // Hudson Bay (geo -95→-78 becomes 78→95)
+  { minLat: 51, maxLat: 63, minLng: 78, maxLng: 95 },
+  // Black Sea (geo 27→42 becomes -42→-27)
+  { minLat: 41, maxLat: 47, minLng: -42, maxLng: -27 },
+  // Red Sea + Persian Gulf (geo 32→56 becomes -56→-32)
+  { minLat: 12, maxLat: 30, minLng: -56, maxLng: -32 },
 ]
 
 function isLand(lat: number, lng: number): boolean {
@@ -273,34 +280,48 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
       ),
     )
 
-    // ── Land dots — bounding-box continent detection (Bug 3) ──
-    const dotCount = isMobile ? 1500 : 3500 // Bug 3: higher counts
-    const dotGeo = new THREE.SphereGeometry(0.009, 4, 4) // Bug 3: slightly larger
-    const dotMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 }) // Bug 3: brighter
+    // ── Land dots — Fibonacci sphere, uniform over BOTH hemispheres ──
+    // y goes from +1 (north pole) to -1 (south pole) — no early exit, full coverage
+    const NUM_POINTS = isMobile ? 1500 : 3500
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5)) // ~2.39996 rad
+    const landDots: { x: number; y: number; z: number }[] = []
 
-    const landPoints: THREE.Vector3[] = []
-    const goldenAngle = Math.PI * (3 - Math.sqrt(5))
-    // Sample 6× more candidates than needed to fill quota
-    for (let i = 0; i < dotCount * 6 && landPoints.length < dotCount; i++) {
-      const yN = 1 - (i / (dotCount * 6 - 1)) * 2
-      const r = Math.sqrt(Math.max(0, 1 - yN * yN))
-      const x = Math.cos(goldenAngle * i) * r
-      const z = Math.sin(goldenAngle * i) * r
-      const [lat, lng] = xyzToLatLng(x, yN, z)
-      if (isLand(lat, lng)) landPoints.push(new THREE.Vector3(x, yN, z))
+    for (let i = 0; i < NUM_POINTS; i++) {
+      // y from +1 to -1 covers BOTH hemispheres — this was the root bug
+      const y = 1 - (i / (NUM_POINTS - 1)) * 2
+
+      // ring radius at this latitude
+      const ringRadius = Math.sqrt(1 - y * y)
+
+      // golden-angle spiral around the y axis
+      const theta = goldenAngle * i
+
+      // 3D cartesian coordinates on unit sphere
+      const x = Math.cos(theta) * ringRadius
+      const z = Math.sin(theta) * ringRadius
+
+      // lat: asin(y) gives correct latitude [-90, 90]
+      // lng: atan2(z, x) gives [-180, 180] — matches the negated CONTINENT_BOUNDS above
+      const lat = Math.asin(y) * (180 / Math.PI)
+      const lng = Math.atan2(z, x) * (180 / Math.PI)
+
+      if (isLand(lat, lng)) {
+        landDots.push({ x, y, z })
+      }
     }
 
-    if (landPoints.length > 0) {
-      const dummy = new THREE.Object3D()
-      const inst = new THREE.InstancedMesh(dotGeo, dotMat, landPoints.length)
-      landPoints.forEach((pos, i) => {
-        dummy.position.copy(pos)
-        dummy.updateMatrix()
-        inst.setMatrixAt(i, dummy.matrix)
+    // Individual meshes — position at radius 1.005 (just above wireframe surface)
+    landDots.forEach(({ x, y, z }) => {
+      const dotGeo = new THREE.SphereGeometry(0.009, 6, 6)
+      const dotMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.4,
       })
-      inst.instanceMatrix.needsUpdate = true
-      scene.add(inst)
-    }
+      const dot = new THREE.Mesh(dotGeo, dotMat)
+      dot.position.set(x * 1.005, y * 1.005, z * 1.005)
+      scene.add(dot)
+    })
 
     // ── Project pins — city-grouped arc clusters (Bug 5) ──
     const glows: { mesh: THREE.Mesh; idx: number }[] = []
