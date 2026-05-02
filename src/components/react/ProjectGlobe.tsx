@@ -1,4 +1,10 @@
-'use strict'
+// === ADDING NEW PROJECTS ===
+// 1. Create a new MDX file in src/content/projects/
+// 2. (Optional) Add a location field with city, country, lat, lng
+// 3. Set the order field to control sort order on /work
+// 4. Set featured: true to include on the home page (max 4)
+// No code changes needed here — the globe adapts automatically.
+
 import { useEffect, useRef, useState, useCallback } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
@@ -23,65 +29,53 @@ interface HoverState {
   screenY: number
 }
 
-// ─── Geographic helpers ───────────────────────────────────────────────────────
+// ─── Continent bounding boxes (Bug 3) ────────────────────────────────────────
 
-function deterministicSample(lat: number, lng: number): number {
-  const x = Math.sin(lat * 127.1 + lng * 311.7) * 43758.5453
-  return x - Math.floor(x)
+interface BoundBox {
+  minLat: number
+  maxLat: number
+  minLng: number
+  maxLng: number
 }
 
-function isOnLand(lat: number, lng: number): boolean {
-  const φ = lat
-  const λ = lng
-
+const CONTINENT_BOUNDS: BoundBox[] = [
   // North America
-  if (φ > 25 && φ < 72 && λ > -168 && λ < -52) {
-    if (φ > 51 && φ < 63 && λ > -95 && λ < -76) return false // Hudson Bay
-    return true
-  }
-  if (φ > 7 && φ < 25 && λ > -118 && λ < -77) return true // Mexico + Central Am.
-  if (φ > 59 && φ < 84 && λ > -58 && λ < -17) return true // Greenland
-  if (φ > -56 && φ < 12 && λ > -82 && λ < -34) return true // South America
-
+  { minLat: 25, maxLat: 70, minLng: -168, maxLng: -52 },
+  { minLat: 8, maxLat: 25, minLng: -118, maxLng: -77 },
+  // South America
+  { minLat: -56, maxLat: 12, minLng: -82, maxLng: -34 },
   // Europe
-  if (φ > 36 && φ < 72 && λ > -11 && λ < 40) return true
-  if (φ > 49 && φ < 62 && λ > -11 && λ < 2) return true // UK + Ireland
-
+  { minLat: 36, maxLat: 71, minLng: -10, maxLng: 40 },
+  { minLat: 50, maxLat: 60, minLng: -10, maxLng: 2 },
   // Africa
-  if (φ > -36 && φ < 38 && λ > -18 && λ < 52) return true
-  if (φ > -26 && φ < -12 && λ > 43 && λ < 51) return true // Madagascar
+  { minLat: -35, maxLat: 37, minLng: -18, maxLng: 51 },
+  // Asia (broad + India + SE Asia)
+  { minLat: 5, maxLat: 75, minLng: 40, maxLng: 180 },
+  { minLat: 8, maxLat: 30, minLng: 68, maxLng: 97 },
+  { minLat: -10, maxLat: 25, minLng: 95, maxLng: 141 },
+  // Australia
+  { minLat: -44, maxLat: -10, minLng: 113, maxLng: 154 },
+  // Greenland
+  { minLat: 60, maxLat: 83, minLng: -73, maxLng: -12 },
+]
 
-  // Middle East + Turkey
-  if (φ > 15 && φ < 42 && λ > 26 && λ < 62) return true
-  // South Asia
-  if (φ > 5 && φ < 38 && λ > 60 && λ < 100) return true
-  // East + SE Asia mainland
-  if (φ > 10 && φ < 55 && λ > 100 && λ < 145) return true
-  // Russia / Siberia
-  if (φ > 50 && φ < 78 && λ > 28 && λ < 180) return true
-  if (φ > 30 && φ < 50 && λ > 35 && λ < 100) return true // Central Asia
+const OCEAN_CARVES: BoundBox[] = [
+  { minLat: 51, maxLat: 63, minLng: -95, maxLng: -78 }, // Hudson Bay
+  { minLat: 41, maxLat: 47, minLng: 27, maxLng: 42 },  // Black Sea
+  { minLat: 12, maxLat: 30, minLng: 32, maxLng: 56 },  // Red Sea + Persian Gulf
+]
 
-  // SE Asia islands (Indonesia / Philippines)
-  if (φ > -10 && φ < 8 && λ > 95 && λ < 141)
-    return deterministicSample(φ, λ) < 0.42
-  if (φ > 5 && φ < 22 && λ > 116 && λ < 127)
-    return deterministicSample(φ, λ) < 0.52
-  if (φ > -10 && φ < 5 && λ > 110 && λ < 128)
-    return deterministicSample(φ, λ) < 0.32
-  // Japan
-  if (φ > 30 && φ < 46 && λ > 129 && λ < 146)
-    return deterministicSample(φ, λ) < 0.62
-
-  // Australia + NZ
-  if (φ > -45 && φ < -10 && λ > 113 && λ < 155) return true
-  if (φ > -47 && φ < -34 && λ > 166 && λ < 179)
-    return deterministicSample(φ, λ) < 0.65
-
-  // Antarctica
-  if (φ < -70) return true
-
-  return false
+function isLand(lat: number, lng: number): boolean {
+  const inLand = CONTINENT_BOUNDS.some(
+    (b) => lat >= b.minLat && lat <= b.maxLat && lng >= b.minLng && lng <= b.maxLng,
+  )
+  if (!inLand) return false
+  return !OCEAN_CARVES.some(
+    (b) => lat >= b.minLat && lat <= b.maxLat && lng >= b.minLng && lng <= b.maxLng,
+  )
 }
+
+// ─── Geographic helpers ───────────────────────────────────────────────────────
 
 function latLngTo3D(lat: number, lng: number, radius = 1): THREE.Vector3 {
   const phi = (90 - lat) * (Math.PI / 180)
@@ -97,6 +91,18 @@ function xyzToLatLng(x: number, y: number, z: number): [number, number] {
   const lat = Math.asin(Math.max(-1, Math.min(1, y))) * (180 / Math.PI)
   const lng = Math.atan2(z, -x) * (180 / Math.PI) - 180
   return [lat, lng < -180 ? lng + 360 : lng]
+}
+
+function buildTangentFrame(normal: THREE.Vector3): {
+  t1: THREE.Vector3
+  t2: THREE.Vector3
+} {
+  const up = new THREE.Vector3(0, 1, 0)
+  let t1 = new THREE.Vector3().crossVectors(up, normal)
+  if (t1.length() < 0.001) t1.set(1, 0, 0)
+  t1.normalize()
+  const t2 = new THREE.Vector3().crossVectors(normal, t1).normalize()
+  return { t1, t2 }
 }
 
 // ─── Info card ────────────────────────────────────────────────────────────────
@@ -115,19 +121,14 @@ function InfoCard({
   canvasH: number
 }) {
   const cardW = 248
-  const cardH = 112
-  const offsetX = 20
-  const offsetY = -cardH - 12
-
-  let x = screenX + offsetX
-  let y = screenY + offsetY
-
-  if (x + cardW > canvasW - 8) x = screenX - cardW - offsetX
+  const cardH = 118
+  let x = screenX + 20
+  let y = screenY - cardH - 12
+  if (x + cardW > canvasW - 8) x = screenX - cardW - 20
   if (y < 8) y = screenY + 16
   if (y + cardH > canvasH - 8) y = canvasH - cardH - 8
 
-  const date = new Date(project.date)
-  const label = date
+  const label = new Date(project.date)
     .toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     .toUpperCase()
 
@@ -212,12 +213,8 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
   const [webglOk, setWebglOk] = useState(true)
   const [canvasSize, setCanvasSize] = useState({ w: 1, h: 1 })
 
-  // Three.js object refs — never trigger re-renders
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
-  const sceneRef = useRef<THREE.Scene | null>(null)
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
-  const controlsRef = useRef<OrbitControls | null>(null)
-  const clockRef = useRef(new THREE.Clock())
   const frameIdRef = useRef(0)
   const glowsRef = useRef<{ mesh: THREE.Mesh; idx: number }[]>([])
   const pinDotsRef = useRef<THREE.Mesh[]>([])
@@ -231,6 +228,7 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
   )
   const isTouchRef = useRef(false)
 
+  // Only show projects that have geographic data (Bug 6)
   const projectsWithLocation = projects.filter((p) => p.location !== null)
 
   // ── Scene setup ─────────────────────────────────────────────────────────────
@@ -239,12 +237,8 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
     const container = containerRef.current
     if (!canvas || !container) return
 
-    // WebGL check
     const testCtx = canvas.getContext('webgl2') || canvas.getContext('webgl')
-    if (!testCtx) {
-      setWebglOk(false)
-      return
-    }
+    if (!testCtx) { setWebglOk(false); return }
 
     const isMobile = window.innerWidth < 768
     const W = container.clientWidth
@@ -252,167 +246,215 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
     setCanvasSize({ w: W, h: H })
 
     // Renderer
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: !isMobile,
-      alpha: false,
-    })
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, alpha: false })
     renderer.setSize(W, H)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setClearColor(0x0a0a0a, 1)
     rendererRef.current = renderer
 
-    // Scene
     const scene = new THREE.Scene()
-    sceneRef.current = scene
-
-    // Camera
     const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100)
     camera.position.z = 2.5
     cameraRef.current = camera
 
-    // ── Wireframe sphere ──
-    const sphereGeo = new THREE.SphereGeometry(1, 48, 48)
-    const wireMat = new THREE.MeshBasicMaterial({
-      wireframe: true,
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.04,
-    })
-    scene.add(new THREE.Mesh(sphereGeo, wireMat))
+    // ── Wireframe sphere (Bug 3: slightly more visible) ──
+    scene.add(
+      new THREE.Mesh(
+        new THREE.SphereGeometry(1, 48, 48),
+        new THREE.MeshBasicMaterial({ wireframe: true, color: 0xffffff, transparent: true, opacity: 0.06 }),
+      ),
+    )
 
     // ── Atmosphere ──
-    const atmosGeo = new THREE.SphereGeometry(1.08, 48, 48)
-    const atmosMat = new THREE.MeshBasicMaterial({
-      color: 0x4a90e2,
-      transparent: true,
-      opacity: 0.06,
-      side: THREE.BackSide,
-    })
-    scene.add(new THREE.Mesh(atmosGeo, atmosMat))
+    scene.add(
+      new THREE.Mesh(
+        new THREE.SphereGeometry(1.08, 48, 48),
+        new THREE.MeshBasicMaterial({ color: 0x4a90e2, transparent: true, opacity: 0.06, side: THREE.BackSide }),
+      ),
+    )
 
-    // ── Land dots ──
-    const dotCount = isMobile ? 500 : 2000
-    const dotGeo = new THREE.SphereGeometry(0.007, 4, 4)
-    const dotMat = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.18,
-    })
+    // ── Land dots — bounding-box continent detection (Bug 3) ──
+    const dotCount = isMobile ? 1500 : 3500 // Bug 3: higher counts
+    const dotGeo = new THREE.SphereGeometry(0.009, 4, 4) // Bug 3: slightly larger
+    const dotMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 }) // Bug 3: brighter
 
     const landPoints: THREE.Vector3[] = []
     const goldenAngle = Math.PI * (3 - Math.sqrt(5))
-    for (let i = 0; i < dotCount * 3 && landPoints.length < dotCount; i++) {
-      const y = 1 - (i / (dotCount * 3 - 1)) * 2
-      const r = Math.sqrt(Math.max(0, 1 - y * y))
-      const theta = goldenAngle * i
-      const x = Math.cos(theta) * r
-      const z = Math.sin(theta) * r
-      const [lat, lng] = xyzToLatLng(x, y, z)
-      if (isOnLand(lat, lng)) landPoints.push(new THREE.Vector3(x, y, z))
+    // Sample 6× more candidates than needed to fill quota
+    for (let i = 0; i < dotCount * 6 && landPoints.length < dotCount; i++) {
+      const yN = 1 - (i / (dotCount * 6 - 1)) * 2
+      const r = Math.sqrt(Math.max(0, 1 - yN * yN))
+      const x = Math.cos(goldenAngle * i) * r
+      const z = Math.sin(goldenAngle * i) * r
+      const [lat, lng] = xyzToLatLng(x, yN, z)
+      if (isLand(lat, lng)) landPoints.push(new THREE.Vector3(x, yN, z))
     }
 
     if (landPoints.length > 0) {
       const dummy = new THREE.Object3D()
-      const instanced = new THREE.InstancedMesh(dotGeo, dotMat, landPoints.length)
+      const inst = new THREE.InstancedMesh(dotGeo, dotMat, landPoints.length)
       landPoints.forEach((pos, i) => {
         dummy.position.copy(pos)
         dummy.updateMatrix()
-        instanced.setMatrixAt(i, dummy.matrix)
+        inst.setMatrixAt(i, dummy.matrix)
       })
-      instanced.instanceMatrix.needsUpdate = true
-      scene.add(instanced)
+      inst.instanceMatrix.needsUpdate = true
+      scene.add(inst)
     }
 
-    // ── Project pins ──
+    // ── Project pins — city-grouped arc clusters (Bug 5) ──
     const glows: { mesh: THREE.Mesh; idx: number }[] = []
     const pinDots: THREE.Mesh[] = []
     const hitboxes: THREE.Mesh[] = []
     const pinWorldPositions: THREE.Vector3[] = []
 
+    // Group by city+country (Bug 5)
+    interface PinGroup {
+      baseLat: number
+      baseLng: number
+      entries: { project: ProjectData; idx: number }[]
+    }
+    const groupMap = new Map<string, PinGroup>()
     projectsWithLocation.forEach((project, idx) => {
       const loc = project.location!
-      const outDir = latLngTo3D(loc.lat, loc.lng, 1).normalize()
-      const stemCenter = outDir.clone().multiplyScalar(1.05)
-      const tipPos = outDir.clone().multiplyScalar(1.09)
+      const key = `${loc.city},${loc.country}`
+      if (!groupMap.has(key)) {
+        groupMap.set(key, { baseLat: loc.lat, baseLng: loc.lng, entries: [] })
+      }
+      groupMap.get(key)!.entries.push({ project, idx })
+    })
 
-      const up = new THREE.Vector3(0, 1, 0)
-      const quat = new THREE.Quaternion().setFromUnitVectors(up, outDir)
+    const PIN_GEO = new THREE.SphereGeometry(0.012, 8, 8)
+    const PIN_MAT = new THREE.MeshBasicMaterial({ color: 0xff5c00 })
+    const GLOW_GEO = new THREE.SphereGeometry(0.028, 8, 8)
+    const GLOW_MAT = new THREE.MeshBasicMaterial({
+      color: 0xff5c00,
+      transparent: true,
+      opacity: 0.28,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+    const HIT_GEO = new THREE.SphereGeometry(0.065, 6, 6)
+    const HIT_MAT = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
 
-      // Stem
-      const stemMesh = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.003, 0.003, 0.06, 4),
-        new THREE.MeshBasicMaterial({
-          color: 0xff5c00,
-          transparent: true,
-          opacity: 0.65,
-        }),
-      )
-      stemMesh.position.copy(stemCenter)
-      stemMesh.quaternion.copy(quat)
-      scene.add(stemMesh)
+    groupMap.forEach((group) => {
+      const { baseLat, baseLng, entries } = group
+      const surfaceNormal = latLngTo3D(baseLat, baseLng, 1).normalize()
+      const n = entries.length
 
-      // Dot
-      const dotMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.012, 8, 8),
-        new THREE.MeshBasicMaterial({ color: 0xff5c00 }),
-      )
-      dotMesh.position.copy(tipPos)
-      scene.add(dotMesh)
+      if (n === 1) {
+        // Single pin — simple vertical
+        const tipPos = surfaceNormal.clone().multiplyScalar(1.09)
+        const stemCenter = surfaceNormal.clone().multiplyScalar(1.05)
+        const quat = new THREE.Quaternion().setFromUnitVectors(
+          new THREE.Vector3(0, 1, 0),
+          surfaceNormal,
+        )
+        const stem = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.003, 0.003, 0.06, 4),
+          new THREE.MeshBasicMaterial({ color: 0xff5c00, transparent: true, opacity: 0.65 }),
+        )
+        stem.position.copy(stemCenter)
+        stem.quaternion.copy(quat)
+        scene.add(stem)
 
-      // Glow
-      const glowMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.028, 8, 8),
-        new THREE.MeshBasicMaterial({
-          color: 0xff5c00,
-          transparent: true,
-          opacity: 0.28,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        }),
-      )
-      glowMesh.position.copy(tipPos)
-      scene.add(glowMesh)
-      glows.push({ mesh: glowMesh, idx })
+        const dot = new THREE.Mesh(PIN_GEO, PIN_MAT.clone())
+        dot.position.copy(tipPos)
+        scene.add(dot)
 
-      // Hitbox (invisible)
-      const hitbox = new THREE.Mesh(
-        new THREE.SphereGeometry(0.065, 6, 6),
-        new THREE.MeshBasicMaterial({
-          transparent: true,
-          opacity: 0,
-          depthWrite: false,
-        }),
-      )
-      hitbox.position.copy(tipPos)
-      hitbox.userData.projectIndex = idx
-      scene.add(hitbox)
+        const glow = new THREE.Mesh(GLOW_GEO, GLOW_MAT.clone())
+        glow.position.copy(tipPos)
+        scene.add(glow)
 
-      pinDots.push(dotMesh)
-      hitboxes.push(hitbox)
-      pinWorldPositions.push(tipPos.clone())
+        const hit = new THREE.Mesh(HIT_GEO, HIT_MAT.clone())
+        hit.position.copy(tipPos)
+        hit.userData.projectIndex = entries[0].idx
+        scene.add(hit)
 
-      // Associate stem with pin index for visibility updates
-      stemMesh.userData.projectIndex = idx
-      dotMesh.userData.projectIndex = idx
+        glows.push({ mesh: glow, idx: entries[0].idx })
+        pinDots[entries[0].idx] = dot
+        hitboxes[entries[0].idx] = hit
+        pinWorldPositions[entries[0].idx] = tipPos.clone()
+      } else {
+        // Cluster — arc arrangement (Bug 5)
+        const { t1, t2 } = buildTangentFrame(surfaceNormal)
+        const baseAnchor = surfaceNormal.clone().multiplyScalar(1.005)
+
+        // Decorative base ring at city anchor
+        const ring = new THREE.Mesh(
+          new THREE.RingGeometry(0.014, 0.024, 20),
+          new THREE.MeshBasicMaterial({ color: 0xff5c00, transparent: true, opacity: 0.55, side: THREE.DoubleSide }),
+        )
+        ring.position.copy(baseAnchor)
+        ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), surfaceNormal)
+        scene.add(ring)
+
+        entries.forEach(({ project, idx }, i) => {
+          const angle = (i / (n - 1)) * Math.PI - Math.PI / 2
+          const heightStagger = 0.05 + (i % 2) * 0.03
+          const arcRadius = 0.14
+
+          const offset = t1.clone()
+            .multiplyScalar(Math.cos(angle) * arcRadius)
+            .add(t2.clone().multiplyScalar(Math.sin(angle) * arcRadius * 0.3))
+
+          const pinPos = surfaceNormal.clone()
+            .multiplyScalar(1.02 + heightStagger)
+            .add(offset)
+
+          // Connecting line from base anchor to pin
+          const lineGeo = new THREE.BufferGeometry().setFromPoints([
+            baseAnchor.clone(),
+            pinPos.clone(),
+          ])
+          scene.add(
+            new THREE.Line(
+              lineGeo,
+              new THREE.LineBasicMaterial({ color: 0xff5c00, transparent: true, opacity: 0.35 }),
+            ),
+          )
+
+          const dot = new THREE.Mesh(PIN_GEO, PIN_MAT.clone())
+          dot.position.copy(pinPos)
+          scene.add(dot)
+
+          const glow = new THREE.Mesh(GLOW_GEO, GLOW_MAT.clone())
+          glow.position.copy(pinPos)
+          scene.add(glow)
+
+          const hit = new THREE.Mesh(HIT_GEO, HIT_MAT.clone())
+          hit.position.copy(pinPos)
+          hit.userData.projectIndex = idx
+          hit.userData.projectSlug = project.slug
+          scene.add(hit)
+
+          glows.push({ mesh: glow, idx })
+          pinDots[idx] = dot
+          hitboxes[idx] = hit
+          pinWorldPositions[idx] = pinPos.clone()
+        })
+      }
     })
 
     glowsRef.current = glows
     pinDotsRef.current = pinDots
-    hitboxesRef.current = hitboxes
+    hitboxesRef.current = hitboxes.filter(Boolean) // compact sparse array
     pinWorldRef.current = pinWorldPositions
 
-    // ── OrbitControls ──
+    // ── OrbitControls (Bug 4: zoom enabled; Bug 7: keys disabled) ──
     const controls = new OrbitControls(camera, renderer.domElement)
-    controls.enableZoom = false
+    controls.enableZoom = true        // Bug 4
+    controls.minDistance = 1.6        // Bug 4
+    controls.maxDistance = 4.5        // Bug 4
+    controls.zoomSpeed = 0.6          // Bug 4
     controls.enablePan = false
     controls.enableDamping = true
     controls.dampingFactor = 0.05
     controls.autoRotate = !reducedMotion.current
     controls.autoRotateSpeed = 0.5
-    controlsRef.current = controls
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(controls as any).enableKeys = false // Bug 7: stop OrbitControls eating key events
 
-    // Pause auto-rotate on drag, resume after 3s
     const pauseRotate = () => {
       controls.autoRotate = false
       if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
@@ -420,9 +462,7 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
     const scheduleResume = () => {
       if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
       if (!reducedMotion.current) {
-        resumeTimerRef.current = setTimeout(() => {
-          controls.autoRotate = true
-        }, 3000)
+        resumeTimerRef.current = setTimeout(() => { controls.autoRotate = true }, 3000)
       }
     }
     renderer.domElement.addEventListener('mousedown', pauseRotate)
@@ -431,46 +471,35 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
     renderer.domElement.addEventListener('touchend', scheduleResume, { passive: true })
 
     // ── Render loop ──
-    const raycaster = new THREE.Raycaster()
-    const clock = clockRef.current
+    const clock = new THREE.Clock()
 
     const animate = () => {
       frameIdRef.current = requestAnimationFrame(animate)
       controls.update()
 
       const t = clock.getElapsedTime()
-      const cam = cameraRef.current!
-      const camDir = cam.position.clone().normalize()
+      const camDir = camera.position.clone().normalize()
 
-      // Update pin pulse + visibility
       glowsRef.current.forEach(({ mesh, idx }) => {
+        if (!mesh) return
         const pinNormal = mesh.position.clone().normalize()
         const visibility = pinNormal.dot(camDir)
 
-        if (visibility < 0.15) {
-          mesh.visible = false
-          if (pinDotsRef.current[idx]) pinDotsRef.current[idx].visible = false
-          return
-        }
-
-        mesh.visible = true
-        if (pinDotsRef.current[idx]) pinDotsRef.current[idx].visible = true
+        mesh.visible = visibility >= 0.15
+        const dot = pinDotsRef.current[idx]
+        if (dot) dot.visible = visibility >= 0.15
+        if (visibility < 0.15) return
 
         const baseOpacity = Math.max(0.08, (visibility - 0.15) / 0.85)
-        const mat = mesh.material as THREE.MeshBasicMaterial
-        mat.opacity = 0.28 * baseOpacity
+        ;(mesh.material as THREE.MeshBasicMaterial).opacity = 0.28 * baseOpacity
 
         if (!reducedMotion.current) {
-          const phase = t * Math.PI - idx * 0.3
-          const pulse = 1.2 + 0.3 * Math.sin(phase)
-          const isHovered = hoveredIdxRef.current === idx
-          const target = isHovered ? pulse * 1.6 : pulse
-          mesh.scale.setScalar(
-            mesh.scale.x + (target - mesh.scale.x) * 0.12,
-          )
-          if (pinDotsRef.current[idx]) {
-            const dotTarget = isHovered ? 1.4 : 1.0
-            const dot = pinDotsRef.current[idx]
+          const pulse = 1.2 + 0.3 * Math.sin(t * Math.PI - idx * 0.3)
+          const isHov = hoveredIdxRef.current === idx
+          const glowTarget = isHov ? pulse * 1.6 : pulse
+          mesh.scale.setScalar(mesh.scale.x + (glowTarget - mesh.scale.x) * 0.12)
+          if (dot) {
+            const dotTarget = isHov ? 1.4 : 1.0
             dot.scale.setScalar(dot.scale.x + (dotTarget - dot.scale.x) * 0.12)
           }
         }
@@ -480,7 +509,7 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
     }
     animate()
 
-    // ── Resize handler ──
+    // ── Resize ──
     const handleResize = () => {
       const w = container.clientWidth
       const h = container.clientHeight
@@ -501,58 +530,66 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
       renderer.domElement.removeEventListener('touchend', scheduleResume)
       controls.dispose()
       renderer.dispose()
-      // Dispose geometries + materials
       scene.traverse((obj) => {
-        if (obj instanceof THREE.Mesh) {
+        if (obj instanceof THREE.Mesh || obj instanceof THREE.Line) {
           obj.geometry.dispose()
-          if (Array.isArray(obj.material)) {
-            obj.material.forEach((m) => m.dispose())
-          } else {
-            obj.material.dispose()
-          }
+          const mat = obj.material
+          if (Array.isArray(mat)) mat.forEach((m: THREE.Material) => m.dispose())
+          else (mat as THREE.Material).dispose()
         }
       })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── Raycasting on mousemove ──────────────────────────────────────────────────
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (isTouchRef.current) return
+  // ── Raycasting ──────────────────────────────────────────────────────────────
+  const doRaycast = useCallback(
+    (clientX: number, clientY: number): number | null => {
       const camera = cameraRef.current
       const canvas = canvasRef.current
-      if (!camera || !canvas) return
-
+      if (!camera || !canvas) return null
       const rect = canvas.getBoundingClientRect()
       const mouse = new THREE.Vector2(
-        ((e.clientX - rect.left) / rect.width) * 2 - 1,
-        -((e.clientY - rect.top) / rect.height) * 2 + 1,
+        ((clientX - rect.left) / rect.width) * 2 - 1,
+        -((clientY - rect.top) / rect.height) * 2 + 1,
       )
+      const rc = new THREE.Raycaster()
+      rc.setFromCamera(mouse, camera)
+      const hits = rc.intersectObjects(hitboxesRef.current.filter(Boolean))
+      return hits.length > 0 ? (hits[0].object.userData.projectIndex as number) : null
+    },
+    [],
+  )
 
-      const raycaster = new THREE.Raycaster()
-      raycaster.setFromCamera(mouse, camera)
-      const intersects = raycaster.intersectObjects(hitboxesRef.current)
-
-      if (intersects.length > 0) {
-        const idx = intersects[0].object.userData.projectIndex as number
-        if (hoveredIdxRef.current !== idx) {
-          hoveredIdxRef.current = idx
-          // Project world position to screen
-          const worldPos = pinWorldRef.current[idx]
-          const projected = worldPos.clone().project(camera)
-          const sx = (projected.x * 0.5 + 0.5) * canvasSize.w
-          const sy = (-projected.y * 0.5 + 0.5) * canvasSize.h
-          setHoverState({ index: idx, screenX: sx, screenY: sy })
-          if (canvas.style) canvas.style.cursor = 'pointer'
-        }
-      } else if (hoveredIdxRef.current !== null) {
-        hoveredIdxRef.current = null
-        setHoverState(null)
-        if (canvas.style) canvas.style.cursor = 'default'
+  const getScreenPos = useCallback(
+    (idx: number): { sx: number; sy: number } => {
+      const camera = cameraRef.current!
+      const worldPos = pinWorldRef.current[idx]
+      const p = worldPos.clone().project(camera)
+      return {
+        sx: (p.x * 0.5 + 0.5) * canvasSize.w,
+        sy: (-p.y * 0.5 + 0.5) * canvasSize.h,
       }
     },
     [canvasSize],
+  )
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (isTouchRef.current) return
+      const idx = doRaycast(e.clientX, e.clientY)
+      if (idx !== null && hoveredIdxRef.current !== idx) {
+        hoveredIdxRef.current = idx
+        const { sx, sy } = getScreenPos(idx)
+        setHoverState({ index: idx, screenX: sx, screenY: sy })
+        if (canvasRef.current) canvasRef.current.style.cursor = 'pointer'
+      } else if (idx === null && hoveredIdxRef.current !== null) {
+        hoveredIdxRef.current = null
+        setHoverState(null)
+        if (canvasRef.current) canvasRef.current.style.cursor = 'default'
+      }
+    },
+    [doRaycast, getScreenPos],
   )
 
   const handleMouseLeave = useCallback(() => {
@@ -560,64 +597,34 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
     setHoverState(null)
   }, [])
 
+  // Bug 2: clear devMode session flag before navigating away from globe
+  const navigateToProject = useCallback((slug: string) => {
+    sessionStorage.removeItem('devMode')
+    window.location.href = `/projects/${slug}`
+  }, [])
+
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
-      const camera = cameraRef.current
-      const canvas = canvasRef.current
-      if (!camera || !canvas) return
-
-      const rect = canvas.getBoundingClientRect()
-      const mouse = new THREE.Vector2(
-        ((e.clientX - rect.left) / rect.width) * 2 - 1,
-        -((e.clientY - rect.top) / rect.height) * 2 + 1,
-      )
-
-      const raycaster = new THREE.Raycaster()
-      raycaster.setFromCamera(mouse, camera)
-      const intersects = raycaster.intersectObjects(hitboxesRef.current)
-
-      if (intersects.length > 0) {
-        const idx = intersects[0].object.userData.projectIndex as number
-        const project = projectsWithLocation[idx]
-        window.location.href = `/projects/${project.slug}`
-      }
+      const idx = doRaycast(e.clientX, e.clientY)
+      if (idx !== null) navigateToProject(projectsWithLocation[idx].slug)
     },
-    [projectsWithLocation],
+    [doRaycast, navigateToProject, projectsWithLocation],
   )
 
-  // Touch: tap to show card, second tap to navigate
   const lastTapRef = useRef<number | null>(null)
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent<HTMLCanvasElement>) => {
       isTouchRef.current = true
-      const camera = cameraRef.current
-      const canvas = canvasRef.current
-      if (!camera || !canvas || e.changedTouches.length === 0) return
-
-      const touch = e.changedTouches[0]
-      const rect = canvas.getBoundingClientRect()
-      const mouse = new THREE.Vector2(
-        ((touch.clientX - rect.left) / rect.width) * 2 - 1,
-        -((touch.clientY - rect.top) / rect.height) * 2 + 1,
-      )
-
-      const raycaster = new THREE.Raycaster()
-      raycaster.setFromCamera(mouse, camera)
-      const intersects = raycaster.intersectObjects(hitboxesRef.current)
-
-      if (intersects.length > 0) {
-        const idx = intersects[0].object.userData.projectIndex as number
-        const worldPos = pinWorldRef.current[idx]
-        const projected = worldPos.clone().project(camera)
-        const sx = (projected.x * 0.5 + 0.5) * canvasSize.w
-        const sy = (-projected.y * 0.5 + 0.5) * canvasSize.h
-
+      if (e.changedTouches.length === 0) return
+      const t = e.changedTouches[0]
+      const idx = doRaycast(t.clientX, t.clientY)
+      if (idx !== null) {
         if (lastTapRef.current === idx) {
-          // Second tap → navigate
-          window.location.href = `/projects/${projectsWithLocation[idx].slug}`
+          navigateToProject(projectsWithLocation[idx].slug) // Bug 2
         } else {
           lastTapRef.current = idx
           hoveredIdxRef.current = idx
+          const { sx, sy } = getScreenPos(idx)
           setHoverState({ index: idx, screenX: sx, screenY: sy })
         }
       } else {
@@ -626,7 +633,7 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
         setHoverState(null)
       }
     },
-    [canvasSize, projectsWithLocation],
+    [doRaycast, getScreenPos, navigateToProject, projectsWithLocation],
   )
 
   if (!webglOk) {
@@ -670,13 +677,10 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
   }
 
   return (
-    <div
-      ref={containerRef}
-      style={{ position: 'relative', width: '100%', height: '100%' }}
-    >
+    <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
       <canvas
         ref={canvasRef}
-        style={{ width: '100%', height: '100%', display: 'block' }}
+        style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' /* Bug 4 */ }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
@@ -684,7 +688,6 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
         aria-hidden="true"
       />
 
-      {/* Info card */}
       {hoverState !== null && projectsWithLocation[hoverState.index] && (
         <InfoCard
           project={projectsWithLocation[hoverState.index]}
@@ -695,17 +698,9 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
         />
       )}
 
-      {/* Screen reader navigation */}
       <ul
         aria-label="Projects list"
-        style={{
-          position: 'absolute',
-          opacity: 0,
-          pointerEvents: 'none',
-          width: 1,
-          height: 1,
-          overflow: 'hidden',
-        }}
+        style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 1, height: 1, overflow: 'hidden' }}
       >
         {projects.map((p) => (
           <li key={p.slug}>

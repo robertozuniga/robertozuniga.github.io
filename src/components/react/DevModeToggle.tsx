@@ -13,6 +13,8 @@ interface ProjectData {
   cover: string
 }
 
+type ViewMode = 'globe' | 'timeline'
+
 interface Props {
   projects: ProjectData[]
 }
@@ -20,6 +22,7 @@ interface Props {
 export default function DevModeToggle({ projects }: Props) {
   const [isOpen, setIsOpen] = useState(false)
   const [everOpened, setEverOpened] = useState(false)
+  const [activeView, setActiveView] = useState<ViewMode>('globe')
   const [showHint, setShowHint] = useState(false)
   const [hovered, setHovered] = useState<'eye' | 'code' | null>(null)
   const pillRef = useRef<HTMLDivElement>(null)
@@ -57,7 +60,8 @@ export default function DevModeToggle({ projects }: Props) {
     sessionStorage.setItem('devMode', 'false')
   }, [])
 
-  // Global keyboard shortcut: D toggles dev mode
+  // ── Centralised keyboard handler (Bug 7) ──────────────────────────────────
+  // All keyboard shortcuts live here so nothing else can intercept them.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement
@@ -67,9 +71,31 @@ export default function DevModeToggle({ projects }: Props) {
         target.isContentEditable
       )
         return
-      if (e.key === 'd' || e.key === 'D') {
+
+      if (e.key === 'Escape') {
+        if (isOpen) {
+          e.preventDefault()
+          closeDevMode()
+        }
+        return
+      }
+
+      if (e.key.toLowerCase() === 'd') {
+        e.preventDefault()
         if (isOpen) closeDevMode()
         else openDevMode()
+        return
+      }
+
+      // G / T only meaningful when dev mode is open
+      if (!isOpen) return
+
+      if (e.key.toLowerCase() === 'g') {
+        e.preventDefault()
+        setActiveView('globe')
+      } else if (e.key.toLowerCase() === 't') {
+        e.preventDefault()
+        setActiveView('timeline')
       }
     }
     window.addEventListener('keydown', handler)
@@ -239,10 +265,16 @@ export default function DevModeToggle({ projects }: Props) {
         </div>
       </div>
 
-      {/* Dev mode overlay — mounted once, visibility controlled via prop */}
+      {/* Dev mode overlay — mounted once, visibility + view controlled via props */}
       {everOpened && (
         <Suspense fallback={null}>
-          <DevMode projects={projects} visible={isOpen} onClose={closeDevMode} />
+          <DevMode
+            projects={projects}
+            visible={isOpen}
+            onClose={closeDevMode}
+            activeView={activeView}
+            onViewChange={setActiveView}
+          />
         </Suspense>
       )}
     </>

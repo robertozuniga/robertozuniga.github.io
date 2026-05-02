@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense, useCallback } from 'react'
+import { useEffect, useRef, lazy, Suspense, useCallback } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 
 const ProjectGlobe = lazy(() => import('./ProjectGlobe'))
@@ -13,13 +13,15 @@ interface ProjectData {
   cover: string
 }
 
+type ViewMode = 'globe' | 'timeline'
+
 interface Props {
   projects: ProjectData[]
   visible: boolean
   onClose: () => void
+  activeView: ViewMode
+  onViewChange: (v: ViewMode) => void
 }
-
-type ViewMode = 'globe' | 'timeline'
 
 // ─── Loading spinner ──────────────────────────────────────────────────────────
 
@@ -49,7 +51,7 @@ function LoadingSpinner() {
   )
 }
 
-// ─── Sub-toggle ───────────────────────────────────────────────────────────────
+// ─── Sub-toggle (controlled) ──────────────────────────────────────────────────
 
 function SubToggle({
   view,
@@ -103,26 +105,31 @@ function SubToggle({
 
 // ─── DevMode overlay ──────────────────────────────────────────────────────────
 
-export default function DevMode({ projects, visible, onClose }: Props) {
-  const [view, setView] = useState<ViewMode>('globe')
+export default function DevMode({
+  projects,
+  visible,
+  onClose,
+  activeView,
+  onViewChange,
+}: Props) {
   const overlayRef = useRef<HTMLDivElement>(null)
   const prevFocusRef = useRef<HTMLElement | null>(null)
   const prefersReduced = useReducedMotion()
 
-  // Computed stats
-  const countries = new Set(
+  // Dynamic stats (Bug 6)
+  const projectCount = projects.length
+  const countryCount = new Set(
     projects.filter((p) => p.location).map((p) => p.location!.country),
-  )
-  const years = new Set(
+  ).size
+  const yearCount = new Set(
     projects.map((p) => new Date(p.date).getFullYear()),
-  )
+  ).size
 
   // Body scroll lock + focus management
   useEffect(() => {
     if (visible) {
       prevFocusRef.current = document.activeElement as HTMLElement
       document.body.dataset.devmode = 'open'
-      // Focus first interactive element in overlay after mount
       const t = setTimeout(() => {
         const first = overlayRef.current?.querySelector<HTMLElement>(
           'button, [href], input, [tabindex]:not([tabindex="-1"])',
@@ -136,21 +143,7 @@ export default function DevMode({ projects, visible, onClose }: Props) {
     }
   }, [visible])
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    if (!visible) return
-    const handler = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return
-      if (e.key === 'Escape') onClose()
-      if (e.key === 'g' || e.key === 'G') setView('globe')
-      if (e.key === 't' || e.key === 'T') setView('timeline')
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [visible, onClose])
-
-  // Focus trap
+  // Focus trap — Tab key only; all other shortcuts handled by DevModeToggle (Bug 7)
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key !== 'Tab') return
     const el = overlayRef.current
@@ -190,7 +183,7 @@ export default function DevMode({ projects, visible, onClose }: Props) {
           transition={
             prefersReduced
               ? { duration: 0 }
-              : { enter: { duration: 0.2 }, exit: { duration: 0.15 } }
+              : { duration: 0.2 }
           }
           style={{
             position: 'fixed',
@@ -214,13 +207,7 @@ export default function DevMode({ projects, visible, onClose }: Props) {
             }}
           >
             {/* Left: label */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-              }}
-            >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <div
                 style={{
                   width: 6,
@@ -244,17 +231,17 @@ export default function DevMode({ projects, visible, onClose }: Props) {
               </span>
             </div>
 
-            {/* Center: sub-toggle */}
-            <SubToggle view={view} onChange={setView} />
+            {/* Center: sub-toggle — view owned by parent (Bug 7) */}
+            <SubToggle view={activeView} onChange={onViewChange} />
 
-            {/* Right: placeholder for the fixed toggle pill */}
+            {/* Right: spacer so sub-toggle stays centered */}
             <div style={{ width: 80 }} />
           </div>
 
           {/* Main canvas area */}
           <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
             <AnimatePresence mode="wait">
-              {view === 'globe' ? (
+              {activeView === 'globe' ? (
                 <motion.div
                   key="globe"
                   initial={prefersReduced ? {} : { opacity: 0 }}
@@ -266,7 +253,7 @@ export default function DevMode({ projects, visible, onClose }: Props) {
                   <Suspense fallback={<LoadingSpinner />}>
                     <ProjectGlobe
                       projects={projects}
-                      onSwitchToTimeline={() => setView('timeline')}
+                      onSwitchToTimeline={() => onViewChange('timeline')}
                     />
                   </Suspense>
                 </motion.div>
@@ -299,7 +286,6 @@ export default function DevMode({ projects, visible, onClose }: Props) {
               borderTop: '1px solid rgba(255,255,255,0.05)',
             }}
           >
-            {/* Stat strip */}
             <div
               className="devmode-overlay-content"
               style={{
@@ -310,12 +296,11 @@ export default function DevMode({ projects, visible, onClose }: Props) {
                 textTransform: 'uppercase',
               }}
             >
-              {projects.length} Projects&nbsp;·&nbsp;
-              {countries.size} Countries&nbsp;·&nbsp;
-              {years.size} Years
+              {projectCount} Projects&nbsp;·&nbsp;
+              {countryCount} Countries&nbsp;·&nbsp;
+              {yearCount} Years
             </div>
 
-            {/* ESC hint */}
             <div
               style={{
                 fontFamily: 'var(--font-mono)',

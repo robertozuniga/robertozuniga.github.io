@@ -1,3 +1,10 @@
+// === ADDING NEW PROJECTS ===
+// 1. Create a new MDX file in src/content/projects/
+// 2. (Optional) Add a location field — not required for the timeline
+// 3. Set the order field to control sort on /work
+// 4. Set featured: true to include on the home page (max 4)
+// No code changes needed here — the timeline adapts automatically.
+
 import { useRef, useEffect, useState, useCallback } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 
@@ -19,10 +26,13 @@ function getYear(iso: string) {
 }
 
 function getMonthYear(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'short',
-    year: 'numeric',
-  })
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+}
+
+// Bug 2: clear devMode session before navigating from timeline
+function navigateToProject(slug: string) {
+  sessionStorage.removeItem('devMode')
+  window.location.href = `/projects/${slug}`
 }
 
 // ─── Project node ─────────────────────────────────────────────────────────────
@@ -30,143 +40,109 @@ function getMonthYear(iso: string) {
 function ProjectNode({
   project,
   above,
-  isFirst,
   prefersReduced,
 }: {
   project: ProjectData
   above: boolean
-  isFirst: boolean
   prefersReduced: boolean
 }) {
   const [hovered, setHovered] = useState(false)
 
-  const nodeVariants = {
-    rest: { scale: 1 },
-    hover: { scale: prefersReduced ? 1 : 1.5 },
-  }
-
-  const thumbVariants = {
-    rest: { scale: 1, boxShadow: '0 0 0 rgba(0,0,0,0)' },
-    hover: {
-      scale: prefersReduced ? 1 : 1.04,
-      boxShadow: prefersReduced ? '0 0 0' : '0 8px 32px rgba(0,0,0,0.6)',
-    },
-  }
-
-  const dotPulse = prefersReduced
-    ? {}
-    : {
-        animate: hovered
-          ? {
-              boxShadow: [
-                '0 0 0 0 rgba(255,92,0,0.6)',
-                '0 0 0 8px rgba(255,92,0,0)',
-                '0 0 0 0 rgba(255,92,0,0)',
-              ],
-            }
-          : {},
-        transition: { duration: 1.5, repeat: Infinity },
-      }
-
   const content = (
-    <a
-      href={`/projects/${project.slug}`}
-      style={{ textDecoration: 'none', display: 'block' }}
+    <div
+      onClick={() => navigateToProject(project.slug)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', width: 190, gap: '0.6rem' }}
     >
-      <motion.div
-        variants={{ rest: {}, hover: {} }}
-        initial="rest"
-        animate={hovered ? 'hover' : 'rest'}
+      {/* Thumbnail */}
+      <div
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          width: 190,
-          gap: '0.6rem',
-          cursor: 'pointer',
+          width: 160,
+          height: 90,
+          borderRadius: '0.5rem',
+          overflow: 'hidden',
+          flexShrink: 0,
+          border: '1px solid rgba(255,255,255,0.07)',
+          transform: hovered && !prefersReduced ? 'scale(1.04)' : 'scale(1)',
+          transition: prefersReduced ? 'none' : 'transform 0.25s cubic-bezier(0.4,0,0.2,1)',
         }}
       >
-        {/* Thumbnail */}
-        <motion.div
-          variants={thumbVariants}
-          transition={{ duration: prefersReduced ? 0 : 0.25, ease: [0.4, 0, 0.2, 1] }}
+        <img
+          src={project.cover}
+          alt={project.title}
+          width={160}
+          height={90}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+
+      {/* Text */}
+      <div style={{ textAlign: 'center', width: '100%' }}>
+        <div
           style={{
-            width: 160,
-            height: 90,
-            borderRadius: '0.5rem',
-            overflow: 'hidden',
-            flexShrink: 0,
-            border: '1px solid rgba(255,255,255,0.07)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '10px',
+            letterSpacing: '0.08em',
+            color: '#71717A',
+            textTransform: 'uppercase',
+            marginBottom: '0.25rem',
           }}
         >
-          <img
-            src={project.cover}
-            alt={project.title}
-            width={160}
-            height={90}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              display: 'block',
-            }}
-            loading="lazy"
-            decoding="async"
-          />
-        </motion.div>
-
-        {/* Text */}
-        <div style={{ textAlign: 'center', width: '100%' }}>
-          <div
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '10px',
-              letterSpacing: '0.08em',
-              color: '#71717A',
-              textTransform: 'uppercase',
-              marginBottom: '0.25rem',
-            }}
-          >
-            {getMonthYear(project.date)}
-          </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: '15px',
-              fontWeight: 500,
-              color: hovered ? '#FF5C00' : '#FAFAFA',
-              transition: prefersReduced ? 'none' : 'color 0.2s ease',
-              lineHeight: 1.25,
-              marginBottom: '0.2rem',
-            }}
-          >
-            {project.title}
-          </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: '12px',
-              color: '#71717A',
-              lineHeight: 1.4,
-              overflow: 'hidden',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              maxWidth: 190,
-            }}
-          >
-            {project.subtitle}
-          </div>
+          {getMonthYear(project.date)}
         </div>
-      </motion.div>
-    </a>
+        <div
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: '15px',
+            fontWeight: 500,
+            color: hovered ? '#FF5C00' : '#FAFAFA',
+            transition: prefersReduced ? 'none' : 'color 0.2s ease',
+            lineHeight: 1.25,
+            marginBottom: '0.2rem',
+          }}
+        >
+          {project.title}
+        </div>
+        <div
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: '12px',
+            color: '#71717A',
+            lineHeight: 1.4,
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            maxWidth: 190,
+          }}
+        >
+          {project.subtitle}
+        </div>
+      </div>
+    </div>
   )
 
-  // Above: thumb + text above the axis
-  // Below: thumb + text below the axis
-  const STEM_H = 40 // px from axis line to node dot
+  const STEM_H = 40
+  const dotStyle: React.CSSProperties = {
+    width: 12,
+    height: 12,
+    borderRadius: '50%',
+    background: '#FF5C00',
+    boxShadow: hovered ? '0 0 12px rgba(255,92,0,0.7)' : '0 0 6px rgba(255,92,0,0.35)',
+    flexShrink: 0,
+    position: 'relative',
+    zIndex: 2,
+    transform: hovered && !prefersReduced ? 'scale(1.5)' : 'scale(1)',
+    transition: prefersReduced ? 'none' : 'transform 0.2s cubic-bezier(0.4,0,0.2,1)',
+  }
+  const stemStyle: React.CSSProperties = {
+    width: 1,
+    flex: 1,
+    background: 'rgba(255,255,255,0.1)',
+  }
 
   return (
     <div
@@ -180,7 +156,6 @@ function ProjectNode({
     >
       {above ? (
         <>
-          {/* Content above */}
           <div
             style={{
               display: 'flex',
@@ -192,7 +167,6 @@ function ProjectNode({
           >
             {content}
           </div>
-          {/* Stem */}
           <div
             style={{
               position: 'absolute',
@@ -206,75 +180,16 @@ function ProjectNode({
               justifyContent: 'flex-end',
             }}
           >
-            <div
-              style={{
-                width: 1,
-                flex: 1,
-                background:
-                  'linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.12))',
-              }}
-            />
-            {/* Node dot */}
-            <motion.div
-              variants={nodeVariants}
-              animate={hovered ? 'hover' : 'rest'}
-              transition={{ duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }}
-              {...dotPulse}
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                background: hovered ? '#FF5C00' : '#FF5C00',
-                boxShadow: hovered
-                  ? '0 0 12px rgba(255,92,0,0.7)'
-                  : '0 0 6px rgba(255,92,0,0.35)',
-                flexShrink: 0,
-                marginBottom: -6,
-                position: 'relative',
-                zIndex: 2,
-              }}
-            />
+            <div style={stemStyle} />
+            <div style={{ ...dotStyle, marginBottom: -6 }} />
           </div>
         </>
       ) : (
         <>
-          {/* Node dot + stem */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              height: STEM_H,
-            }}
-          >
-            <motion.div
-              variants={nodeVariants}
-              animate={hovered ? 'hover' : 'rest'}
-              transition={{ duration: prefersReduced ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }}
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                background: '#FF5C00',
-                boxShadow: hovered
-                  ? '0 0 12px rgba(255,92,0,0.7)'
-                  : '0 0 6px rgba(255,92,0,0.35)',
-                flexShrink: 0,
-                marginTop: -6,
-                position: 'relative',
-                zIndex: 2,
-              }}
-            />
-            <div
-              style={{
-                width: 1,
-                flex: 1,
-                background:
-                  'linear-gradient(to bottom, rgba(255,255,255,0.12), rgba(255,255,255,0.05))',
-              }}
-            />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: STEM_H }}>
+            <div style={{ ...dotStyle, marginTop: -6 }} />
+            <div style={stemStyle} />
           </div>
-          {/* Content below */}
           <div
             style={{
               display: 'flex',
@@ -292,22 +207,19 @@ function ProjectNode({
   )
 }
 
-// ─── Timeline component ───────────────────────────────────────────────────────
+// ─── Timeline ─────────────────────────────────────────────────────────────────
 
 export default function ProjectTimeline({ projects }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [scrolled, setScrolled] = useState(false)
   const [showHint, setShowHint] = useState(true)
-  const isMobile =
-    typeof window !== 'undefined' && window.innerWidth < 768
   const prefersReduced = useReducedMotion() ?? false
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
-  // Sort chronologically ascending
   const sorted = [...projects].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   )
 
-  // Compute year boundaries
   const yearPositions: Record<number, number> = {}
   sorted.forEach((p, i) => {
     const yr = getYear(p.date)
@@ -328,42 +240,34 @@ export default function ProjectTimeline({ projects }: Props) {
     return () => el.removeEventListener('scroll', handleScroll)
   }, [handleScroll])
 
-  // Column width + gap
+  // Bug 4: convert vertical mouse-wheel to horizontal scroll (non-passive so we can preventDefault)
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el || isMobile) return
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault()
+        el.scrollLeft += e.deltaY
+      }
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [isMobile])
+
   const COL_W = 190
   const GAP = 88
-  const AXIS_H = 1 // height of the axis line in px
-  // The axis sits at the vertical midpoint. We allocate vertical space for items above + below.
-  const ABOVE_H = 280 // px for content above axis
-  const BELOW_H = 280 // px for content below axis
-  const TOTAL_H = ABOVE_H + AXIS_H + BELOW_H
+  const ABOVE_H = 280
+  const BELOW_H = 280
+  const TOTAL_H = ABOVE_H + 1 + BELOW_H
+  const totalWidth = sorted.length * (COL_W + GAP) + 160
 
   if (isMobile) {
-    // Vertical layout on mobile
     return (
-      <div
-        style={{
-          overflowY: 'auto',
-          height: '100%',
-          padding: '2rem 1.5rem',
-          position: 'relative',
-        }}
-      >
-        {/* Vertical axis */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '2rem',
-            top: 0,
-            bottom: 0,
-            width: 1,
-            background: 'rgba(255,255,255,0.08)',
-          }}
-        />
-
+      <div style={{ overflowY: 'auto', height: '100%', padding: '2rem 1.5rem', position: 'relative' }}>
+        <div style={{ position: 'absolute', left: '2rem', top: 0, bottom: 0, width: 1, background: 'rgba(255,255,255,0.08)' }} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem', paddingLeft: '3rem' }}>
           {sorted.map((project, i) => (
             <div key={project.slug} style={{ position: 'relative' }}>
-              {/* Node dot */}
               <div
                 style={{
                   position: 'absolute',
@@ -376,7 +280,6 @@ export default function ProjectTimeline({ projects }: Props) {
                   boxShadow: '0 0 6px rgba(255,92,0,0.4)',
                 }}
               />
-              {/* Year label if first of year */}
               {yearPositions[getYear(project.date)] === i && (
                 <div
                   style={{
@@ -391,56 +294,23 @@ export default function ProjectTimeline({ projects }: Props) {
                   {getYear(project.date)}
                 </div>
               )}
-              <a
-                href={`/projects/${project.slug}`}
-                style={{ textDecoration: 'none', display: 'block' }}
-              >
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '10px',
-                    letterSpacing: '0.07em',
-                    color: '#71717A',
-                    textTransform: 'uppercase',
-                    marginBottom: '0.3rem',
-                  }}
-                >
+              <div onClick={() => navigateToProject(project.slug)} style={{ cursor: 'pointer' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.07em', color: '#71717A', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
                   {getMonthYear(project.date)}
                 </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: '15px',
-                    fontWeight: 500,
-                    color: '#FAFAFA',
-                    marginBottom: '0.25rem',
-                  }}
-                >
+                <div style={{ fontFamily: 'var(--font-sans)', fontSize: '15px', fontWeight: 500, color: '#FAFAFA', marginBottom: '0.25rem' }}>
                   {project.title}
                 </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: '12px',
-                    color: '#71717A',
-                    lineHeight: 1.4,
-                    marginBottom: '0.75rem',
-                  }}
-                >
+                <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: '#71717A', lineHeight: 1.4, marginBottom: '0.75rem' }}>
                   {project.subtitle}
                 </div>
                 <img
                   src={project.cover}
                   alt={project.title}
-                  style={{
-                    width: '100%',
-                    borderRadius: '0.5rem',
-                    display: 'block',
-                    border: '1px solid rgba(255,255,255,0.07)',
-                  }}
+                  style={{ width: '100%', borderRadius: '0.5rem', display: 'block', border: '1px solid rgba(255,255,255,0.07)' }}
                   loading="lazy"
                 />
-              </a>
+              </div>
             </div>
           ))}
         </div>
@@ -448,39 +318,12 @@ export default function ProjectTimeline({ projects }: Props) {
     )
   }
 
-  // ── Desktop: horizontal scroll ─────────────────────────────────────────────
-
-  const totalItems = sorted.length
-  const totalWidth = totalItems * (COL_W + GAP) + 160 // extra padding
-
   return (
     <div style={{ position: 'relative', height: '100%', overflow: 'hidden' }}>
-      {/* Left fade mask */}
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 80,
-          background: 'linear-gradient(to right, #0A0A0A, transparent)',
-          zIndex: 5,
-          pointerEvents: 'none',
-        }}
-      />
-      {/* Right fade mask */}
-      <div
-        style={{
-          position: 'absolute',
-          right: 0,
-          top: 0,
-          bottom: 0,
-          width: 80,
-          background: 'linear-gradient(to left, #0A0A0A, transparent)',
-          zIndex: 5,
-          pointerEvents: 'none',
-        }}
-      />
+      {/* Left fade */}
+      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 80, background: 'linear-gradient(to right, #0A0A0A, transparent)', zIndex: 5, pointerEvents: 'none' }} />
+      {/* Right fade */}
+      <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 80, background: 'linear-gradient(to left, #0A0A0A, transparent)', zIndex: 5, pointerEvents: 'none' }} />
 
       {/* Scroll hint */}
       {showHint && !prefersReduced && (
@@ -506,16 +349,17 @@ export default function ProjectTimeline({ projects }: Props) {
         </motion.div>
       )}
 
-      {/* Scrollable container */}
+      {/* Scrollable strip — Bug 4: WebkitOverflowScrolling for iOS */}
       <div
         ref={scrollRef}
         style={{
           overflowX: 'auto',
           overflowY: 'hidden',
           height: '100%',
+          WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
-        }}
+        } as React.CSSProperties}
       >
         <div
           style={{
@@ -529,17 +373,7 @@ export default function ProjectTimeline({ projects }: Props) {
           }}
         >
           {/* Axis line */}
-          <div
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              top: '50%',
-              height: AXIS_H,
-              background: 'rgba(255,255,255,0.08)',
-              transform: 'translateY(-50%)',
-            }}
-          />
+          <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', height: 1, background: 'rgba(255,255,255,0.08)', transform: 'translateY(-50%)' }} />
 
           {/* Year markers */}
           {Object.entries(yearPositions).map(([year, itemIdx]) => {
@@ -547,28 +381,9 @@ export default function ProjectTimeline({ projects }: Props) {
             return (
               <div
                 key={year}
-                style={{
-                  position: 'absolute',
-                  left: xPos,
-                  top: 0,
-                  bottom: 0,
-                  width: 1,
-                  borderLeft: '1px dashed rgba(255,255,255,0.06)',
-                  zIndex: 0,
-                }}
+                style={{ position: 'absolute', left: xPos, top: 0, bottom: 0, width: 1, borderLeft: '1px dashed rgba(255,255,255,0.06)', zIndex: 0 }}
               >
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '1.5rem',
-                    left: '0.5rem',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '10px',
-                    letterSpacing: '0.08em',
-                    color: 'rgba(255,255,255,0.18)',
-                    textTransform: 'uppercase',
-                  }}
-                >
+                <div style={{ position: 'absolute', top: '1.5rem', left: '0.5rem', fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.18)', textTransform: 'uppercase' }}>
                   {year}
                 </div>
               </div>
@@ -576,16 +391,7 @@ export default function ProjectTimeline({ projects }: Props) {
           })}
 
           {/* Project nodes */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: GAP,
-              position: 'relative',
-              zIndex: 1,
-              height: TOTAL_H,
-            }}
-          >
+          <div style={{ display: 'flex', alignItems: 'center', gap: GAP, position: 'relative', zIndex: 1, height: TOTAL_H }}>
             {sorted.map((project, i) => {
               const above = i % 2 === 0
               return (
@@ -600,45 +406,23 @@ export default function ProjectTimeline({ projects }: Props) {
                     position: 'relative',
                   }}
                 >
-                  {above ? (
-                    // Content in the top half + node at center
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        height: '100%',
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                        paddingBottom: BELOW_H,
-                      }}
-                    >
-                      <ProjectNode
-                        project={project}
-                        above={true}
-                        isFirst={i === 0}
-                        prefersReduced={prefersReduced ?? false}
-                      />
-                    </div>
-                  ) : (
-                    // Node at center + content in bottom half
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        height: '100%',
-                        alignItems: 'center',
-                        justifyContent: 'flex-start',
-                        paddingTop: ABOVE_H,
-                      }}
-                    >
-                      <ProjectNode
-                        project={project}
-                        above={false}
-                        isFirst={i === 0}
-                        prefersReduced={prefersReduced ?? false}
-                      />
-                    </div>
-                  )}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      height: '100%',
+                      alignItems: 'center',
+                      justifyContent: above ? 'flex-end' : 'flex-start',
+                      paddingBottom: above ? BELOW_H : 0,
+                      paddingTop: above ? 0 : ABOVE_H,
+                    }}
+                  >
+                    <ProjectNode
+                      project={project}
+                      above={above}
+                      prefersReduced={prefersReduced}
+                    />
+                  </div>
                 </div>
               )
             })}
