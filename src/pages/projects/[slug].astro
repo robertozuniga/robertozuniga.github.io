@@ -193,26 +193,6 @@ const galleryLayout = project.data.galleryLayout ?? 'grid';
           </div>
         </ScrollReveal>
 
-        <!-- Videos -->
-        {project.data.videos && project.data.videos.length > 0 && (
-          <ScrollReveal client:visible delay={0.12}>
-            <div class="mb-16">
-              <p class="font-mono text-xs uppercase tracking-widest text-muted mb-6" style="letter-spacing: 0.15em;">— Video</p>
-              <div style="display: flex; flex-direction: column; gap: 2rem;">
-                {project.data.videos.map((v: { src: string; poster?: string; title: string; aspectRatio?: string }) => (
-                  <VideoPlayer
-                    client:visible
-                    src={v.src}
-                    poster={v.poster}
-                    title={v.title}
-                    aspectRatio={v.aspectRatio}
-                  />
-                ))}
-              </div>
-            </div>
-          </ScrollReveal>
-        )}
-
         <!-- Carousels (Plan Z) or flat gallery -->
         {carouselData && carouselData.length > 0 ? (
           <ScrollReveal client:visible delay={0.15}>
@@ -275,6 +255,26 @@ const galleryLayout = project.data.galleryLayout ?? 'grid';
             )}
           </ScrollReveal>
         ) : null}
+
+        <!-- Videos — rendered after gallery -->
+        {project.data.videos && project.data.videos.length > 0 && (
+          <ScrollReveal client:visible delay={0.18}>
+            <div class="mb-16" style="margin-top: 4rem;">
+              <p class="font-mono text-xs uppercase tracking-widest text-accent mb-6" style="letter-spacing: 0.15em;">— Video</p>
+              <div style="display: flex; flex-direction: column; gap: 2rem;">
+                {project.data.videos.map((v: { src: string; poster?: string; title: string; aspectRatio?: string }) => (
+                  <VideoPlayer
+                    client:visible
+                    src={v.src}
+                    poster={v.poster}
+                    title={v.title}
+                    aspectRatio={v.aspectRatio}
+                  />
+                ))}
+              </div>
+            </div>
+          </ScrollReveal>
+        )}
 
         {project.data.closing && (
           <ScrollReveal client:visible delay={0.2}>

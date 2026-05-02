@@ -185,7 +185,7 @@ export default function WorkFilter({ projects }: Props) {
                     fontFamily: 'var(--font-sans)',
                     fontWeight: 400,
                     fontSize: '0.95rem',
-                    color: 'var(--color-muted)',
+                    color: 'var(--color-foreground)',
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}
                 >

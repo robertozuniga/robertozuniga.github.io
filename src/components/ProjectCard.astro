@@ -1,0 +1,55 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  slug: string;
+  title: string;
+  subtitle: string;
+  cover: ImageMetadata;
+  loading?: 'eager' | 'lazy';
+}
+
+const { slug, title, subtitle, cover, loading = 'lazy' } = Astro.props;
+---
+
+<a
+  href={`/projects/${slug}`}
+  class="proj-card block cursor-pointer"
+  aria-label={`View ${title} — ${subtitle}`}
+>
+  <div class="relative overflow-hidden rounded-2xl bg-subtle mb-4" style="aspect-ratio: 4/3;">
+    <Image
+      src={cover}
+      alt={title}
+      width={800}
+      height={600}
+      format="webp"
+      loading={loading}
+      class="card-image-inner w-full h-full object-cover"
+    />
+    <div
+      class="card-arrow absolute"
+      style="top:1rem;right:1rem;width:40px;height:40px;background:rgba(255,255,255,0.1);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);border-radius:9999px;display:flex;align-items:center;justify-content:center;color:#fff;"
+      aria-hidden="true"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 17L17 7M17 7H7M17 7v10"/>
+      </svg>
+    </div>
+  </div>
+  <div class="card-text-stack px-1" style="position:relative;height:1.75rem;overflow:hidden;">
+    <span
+      class="card-title"
+      style="position:absolute;top:0;left:0;right:0;display:block;font-weight:500;font-size:1.125rem;color:var(--color-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+    >
+      {title}
+    </span>
+    <span
+      class="card-subtitle"
+      style="position:absolute;top:0;left:0;right:0;display:block;font-weight:400;font-size:0.95rem;color:var(--color-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+    >
+      {subtitle}
+    </span>
+  </div>
+</a>

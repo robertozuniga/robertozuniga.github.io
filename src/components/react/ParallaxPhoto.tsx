@@ -17,7 +17,7 @@ export default function ParallaxPhoto({ src, alt, width, height }: Props) {
     offset: ['start end', 'end start'],
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '12%']);
+  const y = useTransform(scrollYProgress, [0, 1], ['-15%', '15%']);
 
   return (
     <div
@@ -39,7 +39,7 @@ export default function ParallaxPhoto({ src, alt, width, height }: Props) {
         loading="lazy"
         style={{
           width: '100%',
-          height: '110%',
+          height: '130%',
           objectFit: 'cover',
           objectPosition: 'center 40%',
           display: 'block',
