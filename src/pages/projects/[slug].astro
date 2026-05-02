@@ -49,6 +49,17 @@ const carouselData = project.data.carousels
       }))
     )
   : undefined;
+
+if (carouselData) {
+  const phaseOrder = ['Phase 1', 'Phase 2', 'Phase 3', 'Phase 4'];
+  carouselData.sort(
+    (a, b) =>
+      phaseOrder.findIndex((p) => a.title.startsWith(p)) -
+      phaseOrder.findIndex((p) => b.title.startsWith(p))
+  );
+}
+
+const galleryLayout = project.data.galleryLayout ?? 'grid';
 ---
 
 <BaseLayout
@@ -187,21 +198,57 @@ const carouselData = project.data.carousels
           </ScrollReveal>
         ) : project.data.gallery && project.data.gallery.length > 0 ? (
           <ScrollReveal client:visible delay={0.15}>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-16" aria-label="Project gallery">
-              {project.data.gallery.map((img: ImageMetadata, i: number) => (
-                <div class={`overflow-hidden rounded-2xl bg-subtle ${i === 0 ? 'sm:col-span-2' : ''}`}>
-                  <Image
-                    src={img}
-                    alt={`${project.data.title} — gallery image ${i + 1}`}
-                    width={i === 0 ? 1200 : 600}
-                    height={i === 0 ? 675 : (i === 1 ? 450 : 600)}
-                    format="webp"
-                    loading="lazy"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+            {galleryLayout === 'single' ? (
+              <div class="flex flex-col gap-4 mb-16" aria-label="Project gallery">
+                {project.data.gallery.map((img: ImageMetadata, i: number) => (
+                  <div class="overflow-hidden rounded-2xl bg-subtle w-full">
+                    <Image
+                      src={img}
+                      alt={`${project.data.title} — gallery image ${i + 1}`}
+                      width={1200}
+                      height={675}
+                      format="webp"
+                      loading="lazy"
+                      class="w-full object-cover"
+                      style="aspect-ratio: 16/9;"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : galleryLayout === 'grid2col' ? (
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-16" aria-label="Project gallery">
+                {project.data.gallery.map((img: ImageMetadata, i: number) => (
+                  <div class="overflow-hidden rounded-2xl bg-subtle">
+                    <Image
+                      src={img}
+                      alt={`${project.data.title} — gallery image ${i + 1}`}
+                      width={600}
+                      height={600}
+                      format="webp"
+                      loading="lazy"
+                      class="w-full object-cover"
+                      style="aspect-ratio: 1/1;"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-16" aria-label="Project gallery">
+                {project.data.gallery.map((img: ImageMetadata, i: number) => (
+                  <div class={`overflow-hidden rounded-2xl bg-subtle ${i === 0 ? 'sm:col-span-2' : ''}`}>
+                    <Image
+                      src={img}
+                      alt={`${project.data.title} — gallery image ${i + 1}`}
+                      width={i === 0 ? 1200 : 600}
+                      height={i === 0 ? 675 : (i === 1 ? 450 : 600)}
+                      format="webp"
+                      loading="lazy"
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </ScrollReveal>
         ) : null}
 

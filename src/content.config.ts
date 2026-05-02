@@ -18,6 +18,7 @@ const projects = defineCollection({
       description: z.string(),
       closing: z.string().optional(),
       coverPosition: z.string().optional().default('center'),
+      galleryLayout: z.enum(['grid', 'single', 'grid2col']).optional().default('grid'),
       gallery: z.array(img()).optional(),
       carousels: z
         .array(
