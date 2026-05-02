@@ -78,12 +78,25 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
   const onEnded = () => { setPlaying(false); setShowControls(true); };
   const onError = () => setError(true);
 
+  // Set playsInline programmatically (required on some older iOS versions)
+  useEffect(() => {
+    const v = videoRef.current;
+    if (v) { v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', 'true'); }
+  }, []);
+
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (v.paused) { v.play(); } else { v.pause(); }
+    if (v.paused) { v.play().catch(err => console.error('Play failed:', err)); }
+    else { v.pause(); }
     bringUpControls();
   }, [bringUpControls]);
+
+  // Container-level click: play/pause everywhere, skip control buttons
+  const handleContainerClick = useCallback((e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.vp-ctrl')) return;
+    togglePlay();
+  }, [togglePlay]);
 
   const toggleMute = () => {
     const v = videoRef.current;
@@ -205,7 +218,11 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
         onMouseMove={bringUpControls}
         onMouseEnter={() => { setContainerHovered(true); bringUpControls(); }}
         onMouseLeave={() => { setContainerHovered(false); if (playing && !isMobile) setShowControls(false); }}
-        onClick={onVideoTap}
+        onClick={handleContainerClick}
+        onTouchStart={(e) => {
+          // On iOS, ensure tap fires the click handler for initial play
+          if (!started) { e.preventDefault(); togglePlay(); }
+        }}
         style={{
           position: 'relative',
           background: '#0A0A0A',
@@ -215,6 +232,7 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
           aspectRatio,
           outline: 'none',
           cursor: 'pointer',
+          touchAction: 'manipulation',
         }}
       >
         {/* Video element */}
@@ -224,7 +242,6 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
           poster={poster}
           preload="metadata"
           playsInline
-          onClick={togglePlay}
           onTimeUpdate={onTimeUpdate}
           onLoadedMetadata={onLoaded}
           onPlay={onPlay}
@@ -238,6 +255,7 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
             display: 'block',
             background: '#0A0A0A',
             cursor: 'pointer',
+            pointerEvents: 'none', /* clicks handled by container */
           }}
         />
 
@@ -273,39 +291,36 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
         {/* Premium play button overlay — hidden while playing */}
         {ready && !error && (
           <div
+            className="vp-ctrl"
             onClick={(e) => { e.stopPropagation(); togglePlay(); }}
             onMouseEnter={() => setPlayBtnHovered(true)}
             onMouseLeave={() => setPlayBtnHovered(false)}
             style={{
               position: 'absolute', inset: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              pointerEvents: playing ? 'none' : 'auto',
+              pointerEvents: 'auto',
               opacity: playing ? 0 : 1,
               transition: reduceMotion ? 'none' : 'opacity 200ms ease',
+              zIndex: 2,
             }}
           >
             <div style={{
-              width: 80, height: 80, borderRadius: '50%',
-              background: playBtnHovered
-                ? 'rgba(255,92,0,0.75)'
-                : 'rgba(10,10,10,0.55)',
-              backdropFilter: 'blur(12px)',
+              width: isMobile ? 96 : 80,
+              height: isMobile ? 96 : 80,
+              borderRadius: '50%',
+              background: playBtnHovered ? 'rgba(255,92,0,0.85)' : 'rgba(10,10,10,0.65)',
+              backdropFilter: 'blur(16px)',
               border: playBtnHovered
-                ? '1.5px solid rgba(255,92,0,0.8)'
-                : '1.5px solid rgba(255,255,255,0.25)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                ? '1.5px solid rgba(255,92,0,0.9)'
+                : '1.5px solid rgba(255,255,255,0.4)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transform: playBtnHovered
-                ? 'scale(1.08)'
-                : containerHovered ? 'scale(1.04)' : 'scale(1)',
+              transform: playBtnHovered ? 'scale(1.1)' : 'scale(1)',
+              animation: playing || playBtnHovered ? 'none' : 'vp-btn-pulse 2s ease-in-out infinite',
               transition: reduceMotion ? 'none'
                 : 'background 250ms cubic-bezier(0.4,0,0.2,1), border-color 250ms cubic-bezier(0.4,0,0.2,1), transform 250ms cubic-bezier(0.4,0,0.2,1)',
             }}>
-              <svg
-                width="28" height="32" viewBox="0 0 28 32" fill="none"
-                style={{ marginLeft: 3 }}
-                aria-hidden="true"
-              >
+              <svg width="28" height="32" viewBox="0 0 28 32" fill="none" style={{ marginLeft: 3 }} aria-hidden="true">
                 <path d="M0 0L28 16L0 32V0Z" fill="#FFFFFF" />
               </svg>
             </div>
@@ -334,6 +349,7 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
         {/* Controls bar */}
         {ready && !error && (
           <div
+            className="vp-ctrl"
             onClick={e => e.stopPropagation()}
             style={{
               position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -442,6 +458,10 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
           @keyframes vp-pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.4; transform: scale(1.4); }
+          }
+          @keyframes vp-btn-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
           }
         `}</style>
       </div>

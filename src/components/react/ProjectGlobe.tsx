@@ -113,6 +113,16 @@ function buildTangentFrame(normal: THREE.Vector3): {
   return { t1, t2 }
 }
 
+// Haversine great-circle distance in km
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLng = (lng2 - lng1) * Math.PI / 180
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
 function slerpOnSphere(
   a: THREE.Vector3,
   b: THREE.Vector3,
@@ -486,7 +496,7 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
     const SUDAN_LNG = 31.5713
 
     const journey = {
-      stopIdx: 1 as number,
+      stopIdx: 0 as number,
       progress: 0 as number,
       phase: 'pausing' as 'moving' | 'pausing',
       pauseElapsed: 0 as number,
@@ -633,12 +643,13 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
     journey.leftLeg = leftLeg
     journey.rightLeg = rightLeg
 
-    if (reducedMotion.current) {
-      const madridPos = latLngTo3D(40.4168, -3.7038, 1.04)
-      figureGroup.position.copy(madridPos)
+    // Always initialise figure at JOURNEY[0] (Madrid), not just for reduced-motion
+    {
+      const startPos = latLngTo3D(JOURNEY[0].lat, JOURNEY[0].lng, 1.04)
+      figureGroup.position.copy(startPos)
       figureGroup.quaternion.setFromUnitVectors(
         new THREE.Vector3(0, 1, 0),
-        madridPos.clone().normalize(),
+        startPos.clone().normalize(),
       )
     }
     scene.add(figureGroup)
@@ -727,6 +738,18 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
       if (journey.phase === 'pausing') {
         journey.pauseElapsed += dt
 
+        // Keep figure anchored at the current stop (fixes initial invisible-figure bug)
+        if (journey.figureGroup) {
+          const stopPos = latLngTo3D(stop.lat, stop.lng, 1.04)
+          if (journey.figureGroup.position.lengthSq() < 0.01) {
+            // Only snap if figure is at origin (not yet properly placed)
+            journey.figureGroup.position.copy(stopPos)
+            journey.figureGroup.quaternion.setFromUnitVectors(
+              new THREE.Vector3(0, 1, 0), stopPos.clone().normalize(),
+            )
+          }
+        }
+
         const nearPin = getPinNear(stop.lat, stop.lng)
         if (nearPin !== null && !journey.visitedPins.has(nearPin)) {
           journey.visitedPins.add(nearPin)
@@ -782,10 +805,8 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
         const fromPos = latLngTo3D(fromStop.lat, fromStop.lng, 1.04)
         const toPos = latLngTo3D(stop.lat, stop.lng, 1.04)
 
-        const angle = Math.acos(
-          THREE.MathUtils.clamp(fromPos.clone().normalize().dot(toPos.clone().normalize()), -1, 1),
-        )
-        const legDur = Math.max(1.5, angle * 4.5)
+        const distKm = haversineKm(fromStop.lat, fromStop.lng, stop.lat, stop.lng)
+        const legDur = Math.max(1.5, distKm / 800)
         journey.progress = Math.min(1, journey.progress + dt / legDur)
 
         const currentPos = slerpOnSphere(fromPos, toPos, journey.progress, 1.04)
