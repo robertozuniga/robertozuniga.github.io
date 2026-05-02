@@ -36,21 +36,14 @@ const linkIconMap: Record<string, typeof ExternalLink> = {
 
 const coverPos = project.data.coverPosition ?? 'center';
 
-// Resolve carousel images through getImage() so they are emitted to /_astro/
-// and the src strings are valid web paths (not raw FS metadata).
 const carouselData = project.data.carousels
   ? await Promise.all(
-      project.data.carousels.map(async (c) => ({
-        title: c.title,
+      project.data.carousels.map(async (carousel) => ({
+        title: carousel.title,
         images: await Promise.all(
-          c.images.map(async (img: ImageMetadata) => {
+          carousel.images.map(async (img: ImageMetadata) => {
             const resolved = await getImage({ src: img });
-            return {
-              src: resolved.src,
-              width: (resolved.attributes.width as number) ?? img.width,
-              height: (resolved.attributes.height as number) ?? img.height,
-              alt: '',
-            };
+            return { src: resolved.src, width: img.width, height: img.height, alt: '' };
           })
         ),
       }))
