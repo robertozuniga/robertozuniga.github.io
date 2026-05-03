@@ -534,3 +534,59 @@
   color: var(--color-accent);
   font-weight: 500;
 }
+
+/* About page — credentials section */
+.about-credentials {
+  margin-top: 4rem;
+  max-width: 900px;
+}
+
+.about-section-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-muted);
+  margin-bottom: 1.5rem;
+}
+
+.credentials-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+}
+
+@media (max-width: 768px) {
+  .credentials-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+.cred-heading {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--color-foreground);
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.cred-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cred-list li {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cred-list li:last-child {
+  border-bottom: none;
+}
