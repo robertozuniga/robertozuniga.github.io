@@ -211,7 +211,7 @@ const lightboxImages = await Promise.all(
         ) : project.data.gallery && project.data.gallery.length > 0 ? (
           <ScrollReveal client:visible delay={0.15}>
             {galleryLayout === 'single' ? (
-              /* Single-column layout: fixed 16/9 aspect, no height normalization needed */
+              /* Single-column layout: fixed 16/9 aspect per image */
               <div class="flex flex-col gap-4 mb-16" aria-label="Project gallery">
                 {project.data.gallery.map((img: ImageMetadata, i: number) => (
                   <a data-lightbox-index={i} href={lightboxImages[i]?.src} onclick="event.preventDefault()" style="display: block; border-radius: 0.75rem; overflow: hidden;">
@@ -227,49 +227,37 @@ const lightboxImages = await Promise.all(
                   </a>
                 ))}
               </div>
-            ) : galleryLayout === 'grid2col' ? (
-              /* Square-image layout: project-gallery aligns row heights */
-              <div class="project-gallery" aria-label="Project gallery">
-                {project.data.gallery.map((img: ImageMetadata, i: number) => {
-                  const isWide = img.src?.includes('/wide-') ?? false;
-                  return (
-                    <a
-                      data-lightbox-index={i}
-                      href={lightboxImages[i]?.src}
-                      onclick="event.preventDefault()"
-                      class={isWide ? 'gallery-full-width' : ''}
-                    >
-                      <Image
-                        src={img}
-                        alt={`${project.data.title} image ${i + 1}`}
-                        width={800}
-                        height={800}
-                        format="webp"
-                        loading="lazy"
-                      />
-                    </a>
-                  );
-                })}
-              </div>
             ) : (
-              /* Default 2-column grid: first image full-width, rest paired with height normalization */
+              /* Unified gallery: hero (first) + closer (last) full-width,
+                 middle images paired, orphaned middle also full-width */
               <div class="project-gallery" aria-label="Project gallery">
                 {project.data.gallery.map((img: ImageMetadata, i: number) => {
-                  const isWide = i === 0 || (img.src?.includes('/wide-') ?? false);
+                  const total = project.data.gallery!.length;
+                  const isFirst = i === 0;
+                  const isLast = i === total - 1;
+                  const isWide = img.src?.includes('/wide-') ?? false;
+                  const isShortGallery = total < 4;
+                  const middleCount = total - 2;
+                  const middleIdx = i - 1;
+                  const isOrphanedMiddle =
+                    !isFirst && !isLast &&
+                    middleCount > 0 && middleCount % 2 === 1 &&
+                    middleIdx === middleCount - 1;
+                  const fullWidth = isShortGallery || isFirst || isLast || isWide || isOrphanedMiddle;
                   return (
                     <a
                       data-lightbox-index={i}
                       href={lightboxImages[i]?.src}
                       onclick="event.preventDefault()"
-                      class={isWide ? 'gallery-full-width' : ''}
+                      class={fullWidth ? 'gallery-full-width' : ''}
                     >
                       <Image
                         src={img}
                         alt={`${project.data.title} image ${i + 1}`}
-                        width={isWide ? 1600 : 900}
-                        height={isWide ? 900 : 700}
+                        width={fullWidth ? 1600 : 900}
+                        height={fullWidth ? 900 : 700}
                         format="webp"
-                        loading="lazy"
+                        loading={i < 2 ? 'eager' : 'lazy'}
                       />
                     </a>
                   );

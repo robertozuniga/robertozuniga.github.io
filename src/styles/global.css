@@ -527,7 +527,9 @@
   }
 }
 
-/* Project gallery — 2-column on desktop, 1-column on mobile */
+/* Project gallery — 2-column on desktop, 1-column on mobile
+   Convention: first + last images are full-width bookends;
+   middle images are paired; orphaned middle also full-width. */
 .project-gallery {
   display: grid;
   grid-template-columns: 1fr;
@@ -542,7 +544,7 @@
   }
 }
 
-/* Each grid item clips and rounds itself */
+/* Every grid item: clip, round, dark background */
 .project-gallery > * {
   display: block;
   width: 100%;
@@ -551,13 +553,26 @@
   background: var(--color-subtle);
 }
 
-/* Desktop: images fill the full grid-row height — this is what aligns rows */
+/* Full-width bookend images: span both columns, natural aspect ratio */
 @media (min-width: 768px) {
-  .project-gallery > * {
+  .project-gallery > .gallery-full-width {
+    grid-column: span 2;
+  }
+}
+
+.project-gallery > .gallery-full-width img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Paired images: fill the grid-row height equally — the alignment fix */
+@media (min-width: 768px) {
+  .project-gallery > *:not(.gallery-full-width) {
     height: 100%;
   }
 
-  .project-gallery img {
+  .project-gallery > *:not(.gallery-full-width) img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -566,27 +581,12 @@
   }
 }
 
-/* Mobile: natural aspect ratio, no cropping */
+/* Mobile: all images at natural aspect ratio, no cropping */
 @media (max-width: 767px) {
   .project-gallery img {
     width: 100%;
     height: auto;
     display: block;
-  }
-}
-
-/* Lone last image in an odd-count gallery spans both columns */
-@media (min-width: 768px) {
-  .project-gallery > *:nth-child(odd):last-child {
-    grid-column: span 2;
-  }
-}
-
-/* Explicit full-width override (first image of default galleries,
-   or any image whose filename begins with wide-) */
-@media (min-width: 768px) {
-  .project-gallery > .gallery-full-width {
-    grid-column: span 2;
   }
 }
 
