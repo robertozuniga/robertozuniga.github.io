@@ -211,60 +211,69 @@ const lightboxImages = await Promise.all(
         ) : project.data.gallery && project.data.gallery.length > 0 ? (
           <ScrollReveal client:visible delay={0.15}>
             {galleryLayout === 'single' ? (
+              /* Single-column layout: fixed 16/9 aspect, no height normalization needed */
               <div class="flex flex-col gap-4 mb-16" aria-label="Project gallery">
                 {project.data.gallery.map((img: ImageMetadata, i: number) => (
-                  <a data-lightbox-index={i} href={lightboxImages[i]?.src} onclick="event.preventDefault()" style="display: block;">
-                    <div class="overflow-hidden rounded-2xl bg-subtle w-full">
-                      <Image
-                        src={img}
-                        alt={`${project.data.title} image ${i + 1}`}
-                        width={1200}
-                        height={675}
-                        format="webp"
-                        loading="lazy"
-                        class="w-full object-cover"
-                        style="aspect-ratio: 16/9;"
-                      />
-                    </div>
+                  <a data-lightbox-index={i} href={lightboxImages[i]?.src} onclick="event.preventDefault()" style="display: block; border-radius: 0.75rem; overflow: hidden;">
+                    <Image
+                      src={img}
+                      alt={`${project.data.title} image ${i + 1}`}
+                      width={1200}
+                      height={675}
+                      format="webp"
+                      loading="lazy"
+                      style="width: 100%; height: auto; display: block; aspect-ratio: 16/9; object-fit: cover;"
+                    />
                   </a>
                 ))}
               </div>
             ) : galleryLayout === 'grid2col' ? (
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-16" aria-label="Project gallery">
-                {project.data.gallery.map((img: ImageMetadata, i: number) => (
-                  <a data-lightbox-index={i} href={lightboxImages[i]?.src} onclick="event.preventDefault()" style="display: block;">
-                    <div class="overflow-hidden rounded-2xl bg-subtle">
+              /* Square-image layout: project-gallery aligns row heights */
+              <div class="project-gallery" aria-label="Project gallery">
+                {project.data.gallery.map((img: ImageMetadata, i: number) => {
+                  const isWide = img.src?.includes('/wide-') ?? false;
+                  return (
+                    <a
+                      data-lightbox-index={i}
+                      href={lightboxImages[i]?.src}
+                      onclick="event.preventDefault()"
+                      class={isWide ? 'gallery-full-width' : ''}
+                    >
                       <Image
                         src={img}
                         alt={`${project.data.title} image ${i + 1}`}
-                        width={600}
-                        height={600}
+                        width={800}
+                        height={800}
                         format="webp"
                         loading="lazy"
-                        class="w-full object-cover"
-                        style="aspect-ratio: 1/1;"
                       />
-                    </div>
-                  </a>
-                ))}
+                    </a>
+                  );
+                })}
               </div>
             ) : (
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-16" aria-label="Project gallery">
-                {project.data.gallery.map((img: ImageMetadata, i: number) => (
-                  <a data-lightbox-index={i} href={lightboxImages[i]?.src} onclick="event.preventDefault()" style="display: block;" class={i === 0 ? 'sm:col-span-2' : ''}>
-                    <div class="overflow-hidden rounded-2xl bg-subtle">
+              /* Default 2-column grid: first image full-width, rest paired with height normalization */
+              <div class="project-gallery" aria-label="Project gallery">
+                {project.data.gallery.map((img: ImageMetadata, i: number) => {
+                  const isWide = i === 0 || (img.src?.includes('/wide-') ?? false);
+                  return (
+                    <a
+                      data-lightbox-index={i}
+                      href={lightboxImages[i]?.src}
+                      onclick="event.preventDefault()"
+                      class={isWide ? 'gallery-full-width' : ''}
+                    >
                       <Image
                         src={img}
                         alt={`${project.data.title} image ${i + 1}`}
-                        width={i === 0 ? 1200 : 600}
-                        height={i === 0 ? 675 : (i === 1 ? 450 : 600)}
+                        width={isWide ? 1600 : 900}
+                        height={isWide ? 900 : 700}
                         format="webp"
                         loading="lazy"
-                        class="w-full h-full object-cover"
                       />
-                    </div>
-                  </a>
-                ))}
+                    </a>
+                  );
+                })}
               </div>
             )}
           </ScrollReveal>
