@@ -1,9 +1,19 @@
 # Roberto Zúñiga — Portfolio
+<<<<<<< HEAD
  
 A custom-built, design-engineering portfolio. Live at **[robertotestcs50.github.io](https://robertotestcs50.github.io/)**.
  
 Designed and engineered by Roberto Zúñiga.
  
+=======
+
+Personal portfolio of Roberto Zúñiga, Designer, Engineer.
+
+**Live site**: [https://robertozuniga.github.io](https://robertozuniga.github.io)
+
+Built with Astro 5, Tailwind CSS v4, React 19, and Framer Motion.
+
+>>>>>>> ff12c50 (Honest press callout, real impact numbers, footer fix, accent metrics)
 ---
  
 ## What this is
