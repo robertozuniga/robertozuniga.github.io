@@ -2,7 +2,7 @@
  
 A custom-built, design-engineering portfolio. Live at **[robertotestcs50.github.io](https://robertotestcs50.github.io/)**.
  
-Designed and engineered by Roberto Zúñiga, in collaboration with Claude (Anthropic) for technical implementation. Replaces a previous Framer-built site.
+Designed and engineered by Roberto Zúñiga.
  
 ---
  
