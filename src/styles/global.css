@@ -63,7 +63,7 @@
     .proj-card:hover .card-arrow svg { animation: none !important; }
   }
 
-  /* Issue 2 — mobile card: prevent title/subtitle overlap */
+  /* Mobile cards: title always visible, subtitle appears only on active card */
   @media (hover: none), (max-width: 768px) {
     .card-text-stack {
       position: static !important;
@@ -77,20 +77,39 @@
       opacity: 1 !important;
       display: block !important;
       color: var(--color-foreground) !important;
-      margin-bottom: 0.25rem !important;
+      margin-bottom: 0 !important;
       transition: none !important;
     }
+    /* Subtitle hidden by default on mobile */
     .proj-card .card-subtitle {
       position: static !important;
       transform: none !important;
-      opacity: 1 !important;
       display: block !important;
+      white-space: normal !important;
+      text-overflow: clip !important;
       color: var(--color-muted) !important;
       font-size: 0.875rem !important;
       line-height: 1.4 !important;
-      transition: none !important;
+      /* Hidden state */
+      opacity: 0 !important;
+      max-height: 0 !important;
+      overflow: hidden !important;
+      margin-top: 0 !important;
+      transition: opacity 350ms cubic-bezier(0.4, 0, 0.2, 1),
+                  max-height 350ms cubic-bezier(0.4, 0, 0.2, 1),
+                  margin-top 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    /* Revealed on the card closest to viewport center */
+    .proj-card.is-active .card-subtitle {
+      opacity: 0.85 !important;
+      max-height: 5rem !important;
+      margin-top: 0.25rem !important;
     }
     .proj-card .card-arrow { opacity: 0.6 !important; transform: none !important; }
+  }
+
+  @media (hover: none) and (prefers-reduced-motion: reduce), (max-width: 768px) and (prefers-reduced-motion: reduce) {
+    .proj-card .card-subtitle { transition: none !important; }
   }
 
   /* Issue 7 — God is great footer element */
@@ -402,12 +421,53 @@
     margin-top: 0.875rem;
   }
 
+  /* ── Mobile: tagline hidden by default, revealed 10s on tap ── */
+  @keyframes tap-hint {
+    0%, 100% { opacity: 0.3; transform: scale(1);   }
+    50%      { opacity: 0.7; transform: scale(1.2); }
+  }
+
   @media (hover: none) {
+    .hero-tagline {
+      cursor: pointer;
+    }
+    /* Pulsing dot signals "tap me" — disappears once revealed */
+    .hero-tagline::after {
+      content: '';
+      display: inline-block;
+      width: 0.4em;
+      height: 0.4em;
+      margin-left: 0.5em;
+      border-radius: 50%;
+      background: var(--color-accent);
+      opacity: 0.5;
+      vertical-align: middle;
+      animation: tap-hint 2s ease-in-out infinite;
+    }
+    .hero-tagline-group.mobile-revealed .hero-tagline::after {
+      animation: none;
+      opacity: 0;
+    }
+    /* Detail hidden by default */
     .hero-tagline-detail {
-      opacity: 0.65;
-      max-height: 6rem;
+      opacity: 0;
+      max-height: 0;
+      margin-top: 0;
+      overflow: hidden;
+      transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1),
+                  max-height 400ms cubic-bezier(0.4, 0, 0.2, 1),
+                  margin-top 400ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* Revealed state (JS adds .mobile-revealed) */
+    .hero-tagline-group.mobile-revealed .hero-tagline-detail {
+      opacity: 0.85;
+      max-height: 8rem;
       margin-top: 0.875rem;
     }
+  }
+
+  @media (hover: none) and (prefers-reduced-motion: reduce) {
+    .hero-tagline::after { animation: none; }
   }
 
   /* Dev mode — prevent body scroll when overlay is open */

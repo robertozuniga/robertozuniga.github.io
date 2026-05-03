@@ -83,6 +83,36 @@ const skills = [
     </div>
   </section>
 
+  <!-- Mobile tap-to-reveal for hero tagline -->
+  <script is:inline>
+    (function () {
+      if (!window.matchMedia('(hover: none)').matches) return
+
+      var group = document.querySelector('.hero-tagline-group')
+      var heading = group && group.querySelector('.hero-tagline')
+      if (!group || !heading) return
+
+      var timeoutId = null
+
+      heading.addEventListener('click', function (e) {
+        e.preventDefault()
+        group.classList.add('mobile-revealed')
+        if (timeoutId) clearTimeout(timeoutId)
+        timeoutId = setTimeout(function () {
+          group.classList.remove('mobile-revealed')
+          timeoutId = null
+        }, 10000)
+      })
+
+      document.addEventListener('click', function (e) {
+        if (!group.contains(e.target) && group.classList.contains('mobile-revealed')) {
+          group.classList.remove('mobile-revealed')
+          if (timeoutId) { clearTimeout(timeoutId); timeoutId = null }
+        }
+      })
+    })()
+  </script>
+
   <!-- SELECTED WORK -->
   <section
     class="px-6 sm:px-8 lg:px-12 py-24 max-w-[1200px] mx-auto"

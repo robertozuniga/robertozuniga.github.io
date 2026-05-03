@@ -16,6 +16,7 @@ const { slug, title, subtitle, cover, loading = 'lazy' } = Astro.props;
 <a
   href={`/projects/${slug}`}
   class="proj-card block cursor-pointer"
+  data-project-card
   aria-label={`View ${title} — ${subtitle}`}
 >
   <div class="relative overflow-hidden rounded-2xl bg-subtle mb-4" style="aspect-ratio: 4/3;">
