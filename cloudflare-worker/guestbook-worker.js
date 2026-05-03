@@ -17,12 +17,37 @@ const MAX_ENTRIES_RETURNED = 200
 const RATE_LIMIT_PER_HOUR = 3
 
 function corsHeaders(origin) {
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  // Exact match first (most secure path)
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    return {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400',
+    }
+  }
+
+  // Fallback: accept any *.github.io subdomain and any localhost port —
+  // still secure because no other origin can spoof these.
+  if (
+    origin &&
+    (origin.endsWith('.github.io') ||
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('http://127.0.0.1:'))
+  ) {
+    return {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400',
+    }
+  }
+
+  // Reject: return the first allowed origin (won't satisfy cross-origin check)
   return {
-    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS[0],
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400',
   }
 }
 

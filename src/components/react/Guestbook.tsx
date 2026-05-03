@@ -222,12 +222,25 @@ export default function Guestbook() {
 
     async function load() {
       try {
+        console.log('[Guestbook] WORKER_URL:', WORKER_URL)
+        console.log('[Guestbook] Fetching entries from Worker…')
         const res = await fetch(WORKER_URL, { method: 'GET' })
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        console.log('[Guestbook] Response status:', res.status)
+
+        if (!res.ok) {
+          const text = await res.text()
+          console.error('[Guestbook] Worker error:', res.status, text)
+          throw new Error(`HTTP ${res.status}`)
+        }
+
         const data: { entries: Entry[] } = await res.json()
+        console.log('[Guestbook] Loaded', data.entries?.length ?? 0, 'entries from Worker')
+
         if (cancelled) return
-        setEntries(mergeEntries(data.entries, readLocal()))
-      } catch {
+        setEntries(mergeEntries(data.entries ?? [], readLocal()))
+        setOffline(false)
+      } catch (err) {
+        console.error('[Guestbook] Fetch failed, falling back to local:', err)
         if (!cancelled) {
           setOffline(true)
           setEntries(mergeEntries([], readLocal()))
@@ -259,22 +272,28 @@ export default function Guestbook() {
     }
 
     try {
+      console.log('[Guestbook] Submitting to:', WORKER_URL)
       const res = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newEntry),
       })
+      console.log('[Guestbook] Submit response:', res.status)
       if (!res.ok) {
-        const data = await res.json().catch(() => ({})) as { error?: string }
+        const text = await res.text()
+        console.error('[Guestbook] Submit failed:', res.status, text)
+        let parsed: { error?: string } = {}
+        try { parsed = JSON.parse(text) } catch { /* raw error text */ }
         setFormError(
           res.status === 429
             ? 'Too many submissions. Try again in an hour.'
-            : (data.error || 'Could not save. Please try again.'),
+            : (parsed.error || 'Could not save. Please try again.'),
         )
         setSubmitting(false)
         return
       }
-    } catch {
+    } catch (err) {
+      console.error('[Guestbook] Network error during submit:', err)
       setFormError('Network error — saving locally as backup.')
     }
 
