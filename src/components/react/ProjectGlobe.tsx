@@ -515,11 +515,15 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
       interactionPaused: false as boolean,
       thoughtPulses: [] as { line: THREE.Line; startTime: number }[],
       lastPulseTime: -2 as number,
+      loopCount: 0 as number,
     }
 
-    // Check if a journey stop is near a project pin (within ~2.5°)
+    // Returns the first UNVISITED project pin within ~2.5° lat/lng of the given point.
+    // Skipping already-visited pins means each city activates one project per visit,
+    // so Madrid's 5 pins accumulate progressively across multiple journey loops.
     const getPinNear = (lat: number, lng: number): number | null => {
       for (let i = 0; i < projectsWithLocation.length; i++) {
+        if (journey.visitedPins.has(i)) continue  // skip already-activated pins
         const loc = projectsWithLocation[i].location!
         if (Math.abs(loc.lat - lat) < 2.5 && Math.abs(loc.lng - lng) < 2.5) return i
       }
@@ -765,8 +769,12 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
 
         const nearPin = getPinNear(stop.lat, stop.lng)
         if (nearPin !== null && !journey.visitedPins.has(nearPin)) {
+          console.log(
+            `[Globe] Visit #${journey.visitedPins.size + 1}: "${projectsWithLocation[nearPin]?.slug}" ` +
+            `at journey stop ${journey.stopIdx} (${stop.city}, loop ${journey.loopCount}). ` +
+            `Total: ${journey.visitedPins.size + 1}/${projectsWithLocation.length}`,
+          )
           journey.visitedPins.add(nearPin)
-          // Persist so the network survives navigation
           try {
             sessionStorage.setItem('globe-visited-projects', JSON.stringify(Array.from(journey.visitedPins)))
           } catch { /* ignore */ }
@@ -808,7 +816,9 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
 
         if (journey.pauseElapsed >= pauseDur + pinBonus) {
           journey.phase = 'moving'
-          journey.stopIdx = (journey.stopIdx + 1) % JOURNEY.length
+          const nextStopIdx = (journey.stopIdx + 1) % JOURNEY.length
+          if (nextStopIdx === 0) journey.loopCount++
+          journey.stopIdx = nextStopIdx
           journey.progress = 0
           journey.pauseElapsed = 0
           journey.trailPoints = []

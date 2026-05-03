@@ -210,7 +210,7 @@ export default function DevMode({ projects, visible, onClose, activeView, onView
               fontFamily: 'var(--font-mono)', fontSize: '11px',
               letterSpacing: '0.08em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase',
             }}>
-              {projectCount} Projects&nbsp;·&nbsp;{countryCount} Countries&nbsp;·&nbsp;{age} Years
+              +{projectCount} SELECTED PROJECTS&nbsp;·&nbsp;+{countryCount} COUNTRIES&nbsp;·&nbsp;{age} YEARS
             </div>
 
             <div style={{
