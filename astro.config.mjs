@@ -8,7 +8,7 @@ import tailwindcss from '@tailwindcss/vite';
 const isCI = Boolean(process.env.CI);
 
 export default defineConfig({
-  site: 'https://Robertotestcs50.github.io',
+  site: 'https://robertozuniga.github.io',
   output: 'static',
   integrations: [
     mdx(),
