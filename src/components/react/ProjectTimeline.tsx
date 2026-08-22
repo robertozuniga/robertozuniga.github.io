@@ -307,7 +307,18 @@ export default function ProjectTimeline({ projects }: Props) {
                 <img
                   src={project.cover}
                   alt={project.title}
-                  style={{ width: '100%', borderRadius: '0.5rem', display: 'block', border: '1px solid rgba(255,255,255,0.07)' }}
+                  className="timeline-project-image"
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    aspectRatio: '4 / 3',
+                    maxHeight: 280,
+                    objectFit: 'cover',
+                    objectPosition: 'center',
+                    borderRadius: '0.5rem',
+                    display: 'block',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                  }}
                   loading="lazy"
                 />
               </div>
