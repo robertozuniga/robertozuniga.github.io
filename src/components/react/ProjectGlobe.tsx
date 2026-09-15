@@ -200,7 +200,7 @@ function InfoCard({
           fontFamily: 'var(--font-sans)',
           fontSize: '14px',
           fontWeight: 500,
-          color: '#FAFAFA',
+          color: '#FAF5EF',
           marginBottom: '0.2rem',
           lineHeight: 1.3,
         }}
@@ -211,7 +211,7 @@ function InfoCard({
         style={{
           fontFamily: 'var(--font-sans)',
           fontSize: '12px',
-          color: '#71717A',
+          color: '#8B7355',
           lineHeight: 1.4,
           overflow: 'hidden',
           display: '-webkit-box',
@@ -284,7 +284,7 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, alpha: false })
     renderer.setSize(W, H)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    renderer.setClearColor(0x0a0a0a, 1)
+    renderer.setClearColor(0x1a0f08, 1)
     rendererRef.current = renderer
 
     const scene = new THREE.Scene()
@@ -1123,7 +1123,7 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
           justifyContent: 'center',
           height: '100%',
           gap: '1rem',
-          color: '#71717A',
+          color: '#8B7355',
           fontFamily: 'var(--font-mono)',
           fontSize: '13px',
           textAlign: 'center',
@@ -1139,7 +1139,7 @@ export default function ProjectGlobe({ projects, onSwitchToTimeline }: Props) {
               borderRadius: '9999px',
               border: '1px solid rgba(255,255,255,0.12)',
               background: 'transparent',
-              color: '#FAFAFA',
+              color: '#FAF5EF',
               cursor: 'pointer',
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',

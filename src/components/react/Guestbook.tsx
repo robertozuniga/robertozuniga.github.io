@@ -123,11 +123,11 @@ function CountryPicker({
   }, [open])
 
   const BTN: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.06)',
+    background: 'var(--color-subtle, #241812)',
     border: '1px solid rgba(255,255,255,0.12)',
     borderRadius: '0.5rem',
     padding: '0.375rem 0.5rem',
-    color: '#FAFAFA',
+    color: '#FAF5EF',
     cursor: 'pointer',
     fontSize: '14px',
     display: 'inline-flex',
@@ -153,7 +153,7 @@ function CountryPicker({
             top: 'calc(100% + 4px)',
             left: 0,
             zIndex: 200,
-            background: 'rgba(18,18,18,0.98)',
+            background: 'rgba(36,24,18,0.98)',
             backdropFilter: 'blur(12px)',
             border: '1px solid rgba(255,255,255,0.10)',
             borderRadius: '0.5rem',
@@ -178,7 +178,7 @@ function CountryPicker({
                 border: 'none',
                 padding: '0.45rem 0.625rem',
                 borderRadius: '0.375rem',
-                color: '#FAFAFA',  /* always visible */
+                color: '#FAF5EF',  /* always visible */
                 fontSize: '13px',
                 cursor: 'pointer',
                 display: 'flex',
@@ -189,7 +189,7 @@ function CountryPicker({
               onMouseLeave={e => (e.currentTarget.style.background = c.flag === value.flag ? 'rgba(200,230,255,0.12)' : 'transparent')}
             >
               <span style={{ fontSize: '15px', flexShrink: 0 }}>{c.flag}</span>
-              <span style={{ color: '#FAFAFA' }}>{c.label}</span>
+              <span style={{ color: '#FAF5EF' }}>{c.label}</span>
             </button>
           ))}
         </div>
@@ -309,11 +309,11 @@ export default function Guestbook() {
 
   const EASE = prefersReduced ? 'none' : 'all 250ms cubic-bezier(0.4,0,0.2,1)'
   const INPUT: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.06)',
+    background: 'var(--color-subtle, #241812)',
     border: '1px solid rgba(255,255,255,0.10)',
     borderRadius: '0.375rem',
     padding: '0.375rem 0.5rem',
-    color: '#FAFAFA',
+    color: '#FAF5EF',
     fontFamily: 'var(--font-sans)',
     fontSize: '12px',
     outline: 'none',
@@ -325,7 +325,7 @@ export default function Guestbook() {
         <div style={{
           position: 'absolute', bottom: '2.5rem', left: 0,
           width: 'min(320px, 90vw)', maxHeight: '72vh',
-          background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(16px)',
+          background: 'rgba(26,15,8,0.92)', backdropFilter: 'blur(16px)',
           border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1rem',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
           zIndex: 50,
@@ -341,7 +341,7 @@ export default function Guestbook() {
               {offline && <span style={{ color: '#C8E6FF', marginLeft: '0.5rem' }}>OFFLINE</span>}
             </span>
             <button onClick={() => setOpen(false)} aria-label="Close guestbook"
-              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '16px', padding: '0 0.25rem', lineHeight: 1 }}>
+              style={{ background: 'none', border: 'none', color: 'rgba(250,245,239,0.4)', cursor: 'pointer', fontSize: '16px', padding: '0 0.25rem', lineHeight: 1 }}>
               ×
             </button>
           </div>
@@ -353,16 +353,16 @@ export default function Guestbook() {
                 Loading entries…
               </div>
             ) : entries.length === 0 ? (
-              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--color-muted, #71717A)', padding: '2rem 0', textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--color-muted, #8B7355)', padding: '2rem 0', textAlign: 'center' }}>
                 Be the first to leave a mark.
               </div>
             ) : (
               entries.map((e, i) => (
                 <div key={i} style={{ padding: '0.6rem 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'rgba(255,255,255,0.82)', lineHeight: 1.4 }}>
-                    {e.country} <strong style={{ color: '#fff' }}>{e.name}</strong> — {e.message}
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'rgba(250,245,239,0.82)', lineHeight: 1.4 }}>
+                    {e.country} <strong style={{ color: '#FAF5EF' }}>{e.name}</strong> — {e.message}
                   </div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'rgba(255,255,255,0.28)', marginTop: '0.15rem', letterSpacing: '0.04em' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'rgba(250,245,239,0.28)', marginTop: '0.15rem', letterSpacing: '0.04em' }}>
                     {fmtDate(e.date)}
                   </div>
                 </div>
@@ -410,7 +410,7 @@ export default function Guestbook() {
                 <button type="submit" disabled={submitting} style={{
                   display: 'block', width: '100%', padding: '0.4rem 1rem',
                   background: submitting ? 'rgba(200,230,255,0.3)' : '#C8E6FF',
-                  color: '#0A0A0A', border: 'none', borderRadius: '9999px',
+                  color: '#1A0F08', border: 'none', borderRadius: '9999px',
                   fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600,
                   letterSpacing: '0.1em', textTransform: 'uppercase',
                   cursor: submitting ? 'default' : 'pointer', transition: EASE,
@@ -429,7 +429,7 @@ export default function Guestbook() {
         aria-expanded={open}
         style={{
           display: 'flex', alignItems: 'center', gap: '0.5rem',
-          background: 'rgba(10,10,10,0.82)', backdropFilter: 'blur(12px)',
+          background: 'rgba(26,15,8,0.82)', backdropFilter: 'blur(12px)',
           border: '1px solid rgba(255,255,255,0.08)', borderRadius: '9999px',
           padding: '0.35rem 0.875rem', cursor: 'pointer',
           fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.1em',

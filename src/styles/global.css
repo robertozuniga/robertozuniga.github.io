@@ -7,10 +7,10 @@
 }
 
 @theme {
-  --color-background: #0A0A0A;
-  --color-foreground: #FAFAFA;
-  --color-muted: #71717A;
-  --color-subtle: #18181B;
+  --color-background: #1A0F08;
+  --color-foreground: #FAF5EF;
+  --color-muted: #8B7355;
+  --color-subtle: #241812;
   --color-border: rgba(255, 255, 255, 0.08);
   --color-accent: #C8E6FF;
 
@@ -137,7 +137,7 @@
     font-size: 13px;
     font-style: italic;
     font-weight: 400;
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(250, 245, 239, 0.35);
     letter-spacing: 0.02em;
     transition: color 300ms ease, letter-spacing 300ms ease,
                 transform 300ms ease-out, text-shadow 300ms ease;
@@ -172,7 +172,7 @@
     100% { opacity: 0; transform: translate(-50%, -80px) scale(0.4); }
   }
   @media (hover: none) {
-    .god-is-great { color: rgba(255, 255, 255, 0.5); }
+    .god-is-great { color: rgba(250, 245, 239, 0.5); }
   }
   @media (prefers-reduced-motion: reduce) {
     .god-is-great, .god-is-great:hover { transform: none !important; letter-spacing: 0.02em !important; }
@@ -228,8 +228,8 @@
   }
 
   ::selection {
-    background: var(--color-accent);
-    color: var(--color-background);
+    background: rgba(200, 230, 255, 0.25);
+    color: #FAF5EF;
   }
 
   :focus-visible {
@@ -412,7 +412,7 @@
     transition: color 200ms ease;
   }
   .hero-tagline-group:hover .hero-tagline {
-    color: rgba(250, 250, 250, 0.85);
+    color: rgba(250, 245, 239, 0.85);
   }
 
   .hero-tagline-detail {
@@ -718,5 +718,92 @@
   @keyframes lightbox-image-in {
     from { opacity: 1; transform: scale(1); }
     to   { opacity: 1; transform: scale(1); }
+  }
+}
+
+/* About page — tools section (row-based category ↔ tags pairing) */
+.about-tools {
+  margin-top: 4rem;
+  max-width: 900px;
+}
+
+.tools-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tools-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 2rem;
+  align-items: baseline;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid rgba(250, 245, 239, 0.06);
+}
+
+.tools-row:last-child {
+  border-bottom: none;
+}
+
+.tools-category {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-muted);
+  padding-top: 0.4rem;
+}
+
+.tools-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tool-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(250, 245, 239, 0.03);
+  border: 1px solid rgba(250, 245, 239, 0.1);
+  color: rgba(250, 245, 239, 0.75);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  letter-spacing: -0.005em;
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+}
+
+.tool-tag:hover {
+  background: rgba(200, 230, 255, 0.08);
+  border-color: rgba(200, 230, 255, 0.35);
+  color: var(--color-foreground);
+  transform: translateY(-1px);
+}
+
+/* Mobile: stack category above its tools */
+@media (max-width: 640px) {
+  .tools-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 0.9rem 0;
+  }
+  .tools-category {
+    padding-top: 0;
+  }
+  .tool-tag {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-tag {
+    transition: none;
+  }
+  .tool-tag:hover {
+    transform: none;
   }
 }

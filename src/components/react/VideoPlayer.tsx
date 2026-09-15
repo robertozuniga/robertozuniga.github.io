@@ -225,7 +225,7 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
         }}
         style={{
           position: 'relative',
-          background: '#0A0A0A',
+          background: '#1A0F08',
           borderRadius: '1rem',
           overflow: 'hidden',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -253,7 +253,7 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
             height: '100%',
             objectFit: 'contain',
             display: 'block',
-            background: '#0A0A0A',
+            background: '#1A0F08',
             cursor: 'pointer',
             pointerEvents: 'none', /* clicks handled by container */
           }}
@@ -308,7 +308,7 @@ export default function VideoPlayer({ src, poster, title, aspectRatio = '16/9' }
               width: isMobile ? 96 : 80,
               height: isMobile ? 96 : 80,
               borderRadius: '50%',
-              background: playBtnHovered ? 'rgba(200,230,255,0.85)' : 'rgba(10,10,10,0.65)',
+              background: playBtnHovered ? 'rgba(200,230,255,0.85)' : 'rgba(26,15,8,0.65)',
               backdropFilter: 'blur(16px)',
               border: playBtnHovered
                 ? '1.5px solid rgba(200,230,255,0.9)'

@@ -240,10 +240,10 @@ Adding a project automatically updates the count. Adding a new country in any pr
  
 | Token | Value |
 |---|---|
-| `--color-background` | `#0A0A0A` |
-| `--color-foreground` | `#FAFAFA` |
-| `--color-muted` | `#71717A` |
-| `--color-subtle` | `#18181B` |
+| `--color-background` | `#1A0F08` (warm chocolate) |
+| `--color-foreground` | `#FAF5EF` |
+| `--color-muted` | `#8B7355` |
+| `--color-subtle` | `#241812` |
 | `--color-border` | `rgba(255, 255, 255, 0.08)` |
 | `--color-accent` | `#C8E6FF` (light blue) |
 | `--header-height` | `4rem` |

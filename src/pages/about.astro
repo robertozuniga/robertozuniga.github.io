@@ -36,34 +36,7 @@ const skillColumns = [
   },
 ];
 
-const toolGroups = [
-  {
-    category: 'Design',
-    tools: ['Figma', 'Framer', 'Whimsical', 'Adobe Creative Suite'],
-  },
-  {
-    category: 'Engineering CAD',
-    tools: ['Fusion 360', 'CATIA', 'SolidWorks', 'Rhino', 'KeyShot'],
-  },
-  {
-    category: 'Code',
-    tools: ['Python', 'JavaScript', 'C', 'HTML', 'CSS'],
-  },
-  {
-    category: 'Data',
-    tools: ['Advanced Excel', 'Power BI', 'Power Query'],
-  },
-  {
-    category: 'AI',
-    tools: ['GPT', 'Claude', 'Vizcom'],
-  },
-  {
-    category: 'Manufacturing',
-    tools: ['CNC', 'Woodworking', '3D Printing', 'Materials Science'],
-  },
-];
 ---
-
 <BaseLayout
   title="About"
   description="Roberto Zúñiga, a proactive student from Spain with a global entrepreneurial vision, shaped by experiences in more than 15 countries."
@@ -179,37 +152,76 @@ const toolGroups = [
   </section>
 
   <!-- Tools -->
-  <section class="px-6 sm:px-8 lg:px-12 py-20 border-t border-border" aria-labelledby="tools-heading">
+  <div class="px-6 sm:px-8 lg:px-12 pb-20 border-t border-border">
     <div class="max-w-[1400px] mx-auto">
-      <ScrollReveal client:visible>
-        <p class="font-mono text-xs uppercase tracking-widest text-muted mb-12" style="letter-spacing: 0.15em;" id="tools-heading">
-          Tools
-        </p>
-      </ScrollReveal>
+      <section class="about-tools" aria-labelledby="tools-heading">
+        <h2 class="about-section-title" id="tools-heading">Tools</h2>
 
-      <div class="space-y-8">
-        {toolGroups.map((group, i) => (
-          <ScrollReveal client:visible delay={i * 0.07}>
-            <div class="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-8">
-              <p
-                class="font-mono text-xs uppercase tracking-widest text-muted flex-shrink-0"
-                style="min-width: 160px; letter-spacing: 0.15em;"
-              >
-                {group.category}
-              </p>
-              <div class="flex flex-wrap gap-2">
-                {group.tools.map((tool) => (
-                  <span class="font-mono text-xs text-foreground/80 bg-subtle border border-border px-4 py-1.5 rounded-full">
-                    {tool}
-                  </span>
-                ))}
-              </div>
+        <div class="tools-grid">
+          <div class="tools-row">
+            <span class="tools-category">Design</span>
+            <div class="tools-list">
+              <span class="tool-tag">Figma</span>
+              <span class="tool-tag">Framer</span>
+              <span class="tool-tag">Whimsical</span>
+              <span class="tool-tag">Adobe Creative Suite</span>
             </div>
-          </ScrollReveal>
-        ))}
-      </div>
+          </div>
+
+          <div class="tools-row">
+            <span class="tools-category">Engineering CAD</span>
+            <div class="tools-list">
+              <span class="tool-tag">Fusion 360</span>
+              <span class="tool-tag">CATIA</span>
+              <span class="tool-tag">SolidWorks</span>
+              <span class="tool-tag">Rhino</span>
+              <span class="tool-tag">KeyShot</span>
+            </div>
+          </div>
+
+          <div class="tools-row">
+            <span class="tools-category">Code</span>
+            <div class="tools-list">
+              <span class="tool-tag">Python</span>
+              <span class="tool-tag">JavaScript</span>
+              <span class="tool-tag">C</span>
+              <span class="tool-tag">HTML</span>
+              <span class="tool-tag">CSS</span>
+            </div>
+          </div>
+
+          <div class="tools-row">
+            <span class="tools-category">Data</span>
+            <div class="tools-list">
+              <span class="tool-tag">Advanced Excel</span>
+              <span class="tool-tag">Power BI</span>
+              <span class="tool-tag">Power Query</span>
+            </div>
+          </div>
+
+          <div class="tools-row">
+            <span class="tools-category">AI</span>
+            <div class="tools-list">
+              <span class="tool-tag">GPT</span>
+              <span class="tool-tag">Claude</span>
+              <span class="tool-tag">n8n</span>
+              <span class="tool-tag">Vizcom</span>
+            </div>
+          </div>
+
+          <div class="tools-row">
+            <span class="tools-category">Manufacturing</span>
+            <div class="tools-list">
+              <span class="tool-tag">CNC</span>
+              <span class="tool-tag">Woodworking</span>
+              <span class="tool-tag">3D Printing</span>
+              <span class="tool-tag">Materials Science</span>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-  </section>
+  </div>
 
   <!-- CTA -->
   <section class="px-6 sm:px-8 lg:px-12 py-20 border-t border-border" aria-label="CV download">

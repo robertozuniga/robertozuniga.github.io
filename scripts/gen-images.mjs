@@ -67,16 +67,16 @@ function makePNG(width, height, r, g, b) {
   ]);
 }
 
-// Dark #0A0A0A (10, 10, 10) favicon PNGs — dark bg, white RZ
-writeFileSync(join(publicDir, 'favicon-16.png'), makePNG(16, 16, 10, 10, 10));
-writeFileSync(join(publicDir, 'favicon-32.png'), makePNG(32, 32, 10, 10, 10));
-writeFileSync(join(publicDir, 'apple-touch-icon.png'), makePNG(180, 180, 10, 10, 10));
-writeFileSync(join(publicDir, 'android-chrome-512x512.png'), makePNG(512, 512, 10, 10, 10));
+// Warm chocolate #1A0F08 (26, 15, 8) favicon PNGs — chocolate bg, cream RZ
+writeFileSync(join(publicDir, 'favicon-16.png'), makePNG(16, 16, 26, 15, 8));
+writeFileSync(join(publicDir, 'favicon-32.png'), makePNG(32, 32, 26, 15, 8));
+writeFileSync(join(publicDir, 'apple-touch-icon.png'), makePNG(180, 180, 26, 15, 8));
+writeFileSync(join(publicDir, 'android-chrome-512x512.png'), makePNG(512, 512, 26, 15, 8));
 // OG image — dark background solid color (SVG version is the canonical one)
-writeFileSync(join(publicDir, 'og-default.png'), makePNG(1200, 630, 10, 10, 10));
+writeFileSync(join(publicDir, 'og-default.png'), makePNG(1200, 630, 26, 15, 8));
 
 // Also write a minimal .ico (16x16 PNG wrapped) — dark
-const ico16 = makePNG(16, 16, 10, 10, 10);
+const ico16 = makePNG(16, 16, 26, 15, 8);
 // Minimal ICO: 1 image, 16x16, 24bpp
 const icoHeader = Buffer.alloc(6);
 icoHeader.writeUInt16LE(0, 0); // reserved
