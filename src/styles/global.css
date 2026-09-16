@@ -7,10 +7,10 @@
 }
 
 @theme {
-  --color-background: #1A0F08;
-  --color-foreground: #FAF5EF;
-  --color-muted: #8B7355;
-  --color-subtle: #241812;
+  --color-background: #100D0A;
+  --color-foreground: #F5F0E8;
+  --color-muted: #7A7268;
+  --color-subtle: #1C1815;
   --color-border: rgba(255, 255, 255, 0.08);
   --color-accent: #C8E6FF;
 
@@ -137,7 +137,7 @@
     font-size: 13px;
     font-style: italic;
     font-weight: 400;
-    color: rgba(250, 245, 239, 0.35);
+    color: rgba(245, 240, 232, 0.35);
     letter-spacing: 0.02em;
     transition: color 300ms ease, letter-spacing 300ms ease,
                 transform 300ms ease-out, text-shadow 300ms ease;
@@ -172,7 +172,7 @@
     100% { opacity: 0; transform: translate(-50%, -80px) scale(0.4); }
   }
   @media (hover: none) {
-    .god-is-great { color: rgba(250, 245, 239, 0.5); }
+    .god-is-great { color: rgba(245, 240, 232, 0.5); }
   }
   @media (prefers-reduced-motion: reduce) {
     .god-is-great, .god-is-great:hover { transform: none !important; letter-spacing: 0.02em !important; }
@@ -229,7 +229,7 @@
 
   ::selection {
     background: rgba(200, 230, 255, 0.25);
-    color: #FAF5EF;
+    color: #F5F0E8;
   }
 
   :focus-visible {
@@ -412,7 +412,7 @@
     transition: color 200ms ease;
   }
   .hero-tagline-group:hover .hero-tagline {
-    color: rgba(250, 245, 239, 0.85);
+    color: rgba(245, 240, 232, 0.85);
   }
 
   .hero-tagline-detail {
@@ -739,7 +739,7 @@
   gap: 2rem;
   align-items: baseline;
   padding: 1.1rem 0;
-  border-bottom: 1px solid rgba(250, 245, 239, 0.06);
+  border-bottom: 1px solid rgba(245, 240, 232, 0.06);
 }
 
 .tools-row:last-child {
@@ -766,9 +766,9 @@
   align-items: center;
   padding: 0.4rem 0.85rem;
   border-radius: 9999px;
-  background: rgba(250, 245, 239, 0.03);
-  border: 1px solid rgba(250, 245, 239, 0.1);
-  color: rgba(250, 245, 239, 0.75);
+  background: rgba(245, 240, 232, 0.03);
+  border: 1px solid rgba(245, 240, 232, 0.1);
+  color: rgba(245, 240, 232, 0.75);
   font-family: var(--font-sans);
   font-size: 0.85rem;
   letter-spacing: -0.005em;

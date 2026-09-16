@@ -99,7 +99,7 @@ export default function Lightbox({ images }: LightboxProps) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(26, 15, 8, 0.96)',
+        background: 'rgba(16, 13, 10, 0.96)',
         backdropFilter: 'blur(20px)',
         zIndex: 9999,
         display: 'flex',

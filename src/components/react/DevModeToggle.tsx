@@ -123,7 +123,7 @@ export default function DevModeToggle({ projects }: Props) {
                 position: 'absolute',
                 top: 'calc(100% + 8px)',
                 right: 0,
-                background: 'rgba(36, 24, 18, 0.96)',
+                background: 'rgba(28, 24, 21, 0.96)',
                 backdropFilter: 'blur(12px)',
                 border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: '0.5rem',
@@ -133,7 +133,7 @@ export default function DevModeToggle({ projects }: Props) {
                 fontSize: '10px',
                 letterSpacing: '0.09em',
                 textTransform: 'uppercase',
-                color: 'rgba(250,245,239,0.6)',
+                color: 'rgba(245,240,232,0.6)',
                 pointerEvents: 'none',
               }}
             >
@@ -156,7 +156,7 @@ export default function DevModeToggle({ projects }: Props) {
                 top: 'calc(100% + 8px)',
                 right: '50%',
                 transform: 'translateX(50%)',
-                background: 'rgba(36, 24, 18, 0.96)',
+                background: 'rgba(28, 24, 21, 0.96)',
                 backdropFilter: 'blur(12px)',
                 border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: '0.375rem',
@@ -166,7 +166,7 @@ export default function DevModeToggle({ projects }: Props) {
                 fontSize: '10px',
                 letterSpacing: '0.09em',
                 textTransform: 'uppercase',
-                color: 'rgba(250,245,239,0.6)',
+                color: 'rgba(245,240,232,0.6)',
                 pointerEvents: 'none',
               }}
             >
@@ -183,7 +183,7 @@ export default function DevModeToggle({ projects }: Props) {
             width: 72,
             height: 36,
             borderRadius: '9999px',
-            background: 'rgba(36, 24, 18, 0.82)',
+            background: 'rgba(28, 24, 21, 0.82)',
             backdropFilter: 'blur(12px)',
             border: '1px solid rgba(255,255,255,0.08)',
             padding: '4px',
@@ -206,7 +206,7 @@ export default function DevModeToggle({ projects }: Props) {
               borderRadius: '9999px',
               border: 'none',
               cursor: 'pointer',
-              background: !isOpen ? 'rgba(250,245,239,0.95)' : 'transparent',
+              background: !isOpen ? 'rgba(245,240,232,0.95)' : 'transparent',
               transition: 'background 200ms cubic-bezier(0.4,0,0.2,1)',
               flexShrink: 0,
             }}
@@ -215,10 +215,10 @@ export default function DevModeToggle({ projects }: Props) {
               size={13}
               style={{
                 color: !isOpen
-                  ? '#1A0F08'
+                  ? '#100D0A'
                   : hovered === 'eye'
-                    ? 'rgba(250,245,239,0.85)'
-                    : 'rgba(250,245,239,0.45)',
+                    ? 'rgba(245,240,232,0.85)'
+                    : 'rgba(245,240,232,0.45)',
                 transition: 'color 200ms cubic-bezier(0.4,0,0.2,1)',
               }}
             />
@@ -240,7 +240,7 @@ export default function DevModeToggle({ projects }: Props) {
               borderRadius: '9999px',
               border: 'none',
               cursor: 'pointer',
-              background: isOpen ? 'rgba(250,245,239,0.95)' : 'transparent',
+              background: isOpen ? 'rgba(245,240,232,0.95)' : 'transparent',
               transition: 'background 200ms cubic-bezier(0.4,0,0.2,1)',
               flexShrink: 0,
             }}
@@ -249,10 +249,10 @@ export default function DevModeToggle({ projects }: Props) {
               size={13}
               style={{
                 color: isOpen
-                  ? '#1A0F08'
+                  ? '#100D0A'
                   : hovered === 'code'
-                    ? 'rgba(250,245,239,0.85)'
-                    : 'rgba(250,245,239,0.45)',
+                    ? 'rgba(245,240,232,0.85)'
+                    : 'rgba(245,240,232,0.45)',
                 transition: 'color 200ms cubic-bezier(0.4,0,0.2,1)',
               }}
             />
