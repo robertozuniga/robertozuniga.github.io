@@ -103,7 +103,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, p: Player, canvasH: number) {
   }
 
   // Body
-  ctx.fillStyle = '#F5F0E8';
+  ctx.fillStyle = '#FAF5EF';
   ctx.fillRect(p.dead ? 0 : p.x, p.dead ? 0 : p.y, PLAYER_W, PLAYER_H);
 
   // Head
@@ -120,7 +120,7 @@ function drawPlayer(ctx: CanvasRenderingContext2D, p: Player, canvasH: number) {
   // Legs (only when alive)
   if (!p.dead) {
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = '#F5F0E8';
+    ctx.strokeStyle = '#FAF5EF';
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
 
@@ -265,7 +265,7 @@ function drawHUD(
   const scoreText = `${score.toLocaleString()} m`;
   const bestText = `BEST  ${best.toLocaleString()} m`;
 
-  ctx.fillStyle = flash ? '#F5F0E8' : '#C8E6FF';
+  ctx.fillStyle = flash ? '#FAF5EF' : '#C8E6FF';
   ctx.fillText(scoreText, canvasW - 16, 14);
 
   ctx.fillStyle = 'rgba(255,255,255,0.3)';
@@ -453,7 +453,7 @@ export default function GameCanvas() {
     // Prompt
     const label = isMobile ? 'TAP to run' : 'SPACE to run';
     ctx.font = '13px "Geist Mono", monospace';
-    ctx.fillStyle = 'rgba(245,240,232,0.4)';
+    ctx.fillStyle = 'rgba(250,245,239,0.4)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, canvasW / 2, canvasH / 2);
@@ -693,7 +693,7 @@ export default function GameCanvas() {
 
     // Dim overlay when dead
     if (s.dead && p.deadTimer > 24) {
-      ctx.fillStyle = 'rgba(16,13,10,0.4)';
+      ctx.fillStyle = 'rgba(26,15,8,0.4)';
       ctx.fillRect(0, 0, canvasW, canvasH);
     }
 
@@ -724,7 +724,7 @@ export default function GameCanvas() {
     // State messages
     if (s.dead && p.deadTimer > 24) {
       ctx.font = '13px "Geist Mono", monospace';
-      ctx.fillStyle = 'rgba(245,240,232,0.5)';
+      ctx.fillStyle = 'rgba(250,245,239,0.5)';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('PRESS SPACE TO RESTART', canvasW / 2, canvasH / 2);
@@ -747,11 +747,11 @@ export default function GameCanvas() {
       winParticles.current = winParticles.current.filter((pt) => pt.life > 0);
 
       // Dim overlay
-      ctx.fillStyle = 'rgba(16, 13, 10, 0.85)';
+      ctx.fillStyle = 'rgba(26, 15, 8, 0.85)';
       ctx.fillRect(0, 0, canvasW, canvasH);
 
       // "You win."
-      ctx.fillStyle = '#F5F0E8';
+      ctx.fillStyle = '#FAF5EF';
       ctx.font = 'bold 28px "Geist", system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -793,7 +793,7 @@ export default function GameCanvas() {
           width: '100%',
           height: '220px',
           borderRadius: '1rem',
-          background: '#100D0A',
+          background: '#1A0F08',
           borderTop: '1px solid rgba(255,255,255,0.06)',
           cursor: 'pointer',
           touchAction: 'none',

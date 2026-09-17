@@ -69,7 +69,7 @@ export default function PhaseCarousel({ title, images, autoPlayInterval = 3000 }
       role="region"
       aria-label={title}
       style={{
-        background: 'var(--color-subtle, #1C1815)',
+        background: 'var(--color-subtle, #241812)',
         borderRadius: '1rem',
         overflow: 'hidden',
         userSelect: 'none',

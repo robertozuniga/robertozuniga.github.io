@@ -49,7 +49,7 @@ function SubToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode)
     <div role="group" aria-label="Visualization mode" style={{
       display: 'inline-flex', alignItems: 'center',
       borderRadius: '9999px',
-      background: 'var(--color-subtle, #1C1815)',
+      background: 'var(--color-subtle, #241812)',
       border: '1px solid rgba(255,255,255,0.08)',
       padding: '3px', gap: '2px',
     }}>
@@ -61,8 +61,8 @@ function SubToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode)
             fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.1em',
             textTransform: 'uppercase',
             transition: 'background 180ms ease, color 180ms ease',
-            background: active ? '#F5F0E8' : 'transparent',
-            color: active ? '#100D0A' : 'rgba(245,240,232,0.45)',
+            background: active ? '#FAF5EF' : 'transparent',
+            color: active ? '#1A0F08' : 'rgba(250,245,239,0.45)',
           }}>
             {v}
           </button>
@@ -140,7 +140,7 @@ export default function DevMode({ projects, visible, onClose, activeView, onView
           onKeyDown={handleKeyDown}
           {...motionProps}
           transition={prefersReduced ? { duration: 0 } : { duration: 0.2 }}
-          style={{ position: 'fixed', inset: 0, zIndex: 200, background: '#100D0A', display: 'flex', flexDirection: 'column' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 200, background: '#1A0F08', display: 'flex', flexDirection: 'column' }}
         >
           {/* Top bar */}
           <div style={{

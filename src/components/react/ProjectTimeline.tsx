@@ -86,7 +86,7 @@ function ProjectNode({
             fontFamily: 'var(--font-mono)',
             fontSize: '10px',
             letterSpacing: '0.08em',
-            color: '#7A7268',
+            color: '#8B7355',
             textTransform: 'uppercase',
             marginBottom: '0.25rem',
           }}
@@ -98,7 +98,7 @@ function ProjectNode({
             fontFamily: 'var(--font-sans)',
             fontSize: '15px',
             fontWeight: 500,
-            color: hovered ? '#C8E6FF' : '#F5F0E8',
+            color: hovered ? '#C8E6FF' : '#FAF5EF',
             transition: prefersReduced ? 'none' : 'color 0.2s ease',
             lineHeight: 1.25,
             marginBottom: '0.2rem',
@@ -110,7 +110,7 @@ function ProjectNode({
           style={{
             fontFamily: 'var(--font-sans)',
             fontSize: '12px',
-            color: '#7A7268',
+            color: '#8B7355',
             lineHeight: 1.4,
             overflow: 'hidden',
             display: '-webkit-box',
@@ -295,13 +295,13 @@ export default function ProjectTimeline({ projects }: Props) {
                 </div>
               )}
               <div onClick={() => navigateToProject(project.slug)} style={{ cursor: 'pointer' }}>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.07em', color: '#7A7268', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.07em', color: '#8B7355', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
                   {getMonthYear(project.date)}
                 </div>
-                <div style={{ fontFamily: 'var(--font-sans)', fontSize: '15px', fontWeight: 500, color: '#F5F0E8', marginBottom: '0.25rem' }}>
+                <div style={{ fontFamily: 'var(--font-sans)', fontSize: '15px', fontWeight: 500, color: '#FAF5EF', marginBottom: '0.25rem' }}>
                   {project.title}
                 </div>
-                <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: '#7A7268', lineHeight: 1.4, marginBottom: '0.75rem' }}>
+                <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: '#8B7355', lineHeight: 1.4, marginBottom: '0.75rem' }}>
                   {project.subtitle}
                 </div>
                 <img
@@ -332,9 +332,9 @@ export default function ProjectTimeline({ projects }: Props) {
   return (
     <div style={{ position: 'relative', height: '100%', overflow: 'hidden' }}>
       {/* Left fade */}
-      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 80, background: 'linear-gradient(to right, #100D0A, transparent)', zIndex: 5, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 80, background: 'linear-gradient(to right, #1A0F08, transparent)', zIndex: 5, pointerEvents: 'none' }} />
       {/* Right fade */}
-      <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 80, background: 'linear-gradient(to left, #100D0A, transparent)', zIndex: 5, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 80, background: 'linear-gradient(to left, #1A0F08, transparent)', zIndex: 5, pointerEvents: 'none' }} />
 
       {/* Scroll hint */}
       {showHint && !prefersReduced && (
